@@ -1899,6 +1899,20 @@ mod tests {
         .len()
     }
 
+    fn serialized(css: &str) -> String {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let block = parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        );
+        let mut result = String::new();
+        block.to_css(&mut result).unwrap();
+        result
+    }
+
     #[test]
     fn embedder_enables_a_property_its_pref_leaves_off() {
         assert!(!enabled("writing-mode"));
@@ -1962,5 +1976,86 @@ mod tests {
         assert!(PropertyId::set_enabled_for_all_content("--custom", Some(true)).is_err());
         assert!(PropertyId::set_enabled_for_all_content("not-a-property", Some(true)).is_err());
         assert!(enabled("float"));
+    }
+    #[test]
+    fn text_box_is_enabled_through_the_set() {
+        assert!(!enabled("text-box"));
+        assert_eq!(parsed_declarations("text-box: trim-both cap alphabetic"), 0);
+
+        set("text-box", Some(true));
+        assert!(enabled("text-box-trim"));
+        assert!(enabled("text-box-edge"));
+        assert_eq!(
+            serialized("text-box: trim-both cap alphabetic"),
+            "text-box: cap alphabetic;"
+        );
+        assert_eq!(
+            serialized("text-box-trim: trim-start; text-box-edge: text"),
+            "text-box: trim-start text;"
+        );
+    }
+
+    #[test]
+    fn dominant_baseline_is_enabled_through_the_set() {
+        assert_eq!(parsed_declarations("dominant-baseline: central"), 0);
+        set("dominant-baseline", Some(true));
+        assert_eq!(
+            serialized("dominant-baseline: central"),
+            "dominant-baseline: central;"
+        );
+    }
+
+    #[test]
+    fn font_synthesis_follows_its_longhands() {
+        assert!(enabled("font-synthesis-weight"));
+        assert!(!enabled("font-synthesis"));
+        assert_eq!(parsed_declarations("font-synthesis-style: none"), 0);
+
+        set("font-synthesis-style", Some(true));
+        assert_eq!(
+            serialized("font-synthesis-style: oblique-only"),
+            "font-synthesis-style: oblique-only;"
+        );
+        assert!(!enabled("font-synthesis"));
+
+        set("font-synthesis", Some(true));
+        assert!(enabled("font-synthesis-small-caps"));
+        assert!(enabled("font-synthesis-position"));
+        assert_eq!(parsed_declarations("font-synthesis: none"), 4);
+        assert_eq!(
+            serialized("font-synthesis: weight position"),
+            "font-synthesis: weight position;"
+        );
+    }
+
+    #[test]
+    fn alignment_baseline_values_behind_a_pref() {
+        for value in [
+            "alphabetic",
+            "ideographic",
+            "central",
+            "mathematical",
+            "hanging",
+        ] {
+            let css = format!("alignment-baseline: {}", value);
+            assert_eq!(parsed_declarations(&css), 0, "{}", value);
+        }
+        assert_eq!(parsed_declarations("alignment-baseline: middle"), 1);
+
+        static_prefs::set_pref!("layout.css.alignment-baseline.all-values.enabled", true);
+        for value in [
+            "alphabetic",
+            "ideographic",
+            "central",
+            "mathematical",
+            "hanging",
+        ] {
+            let css = format!("alignment-baseline: {}", value);
+            assert_eq!(serialized(&css), format!("{};", css));
+        }
+        assert_eq!(
+            serialized("vertical-align: central"),
+            "vertical-align: central;"
+        );
     }
 }

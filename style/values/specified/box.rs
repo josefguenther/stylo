@@ -762,6 +762,13 @@ pub enum DominantBaseline {
     TextTop,
 }
 
+fn alignment_baseline_all_values_enabled(_: &ParserContext) -> bool {
+    crate::pref!(
+        "layout.css.alignment-baseline.all-values.enabled",
+        gecko = true
+    )
+}
+
 /// A specified value for the `alignment-baseline` property.
 /// https://drafts.csswg.org/css-inline-3/#alignment-baseline
 #[derive(
@@ -788,28 +795,28 @@ pub enum AlignmentBaseline {
     /// Use the text-under baseline.
     TextBottom,
     /// Use the alphabetic baseline.
-    #[cfg(feature = "gecko")]
+    #[parse(condition = "alignment_baseline_all_values_enabled")]
     Alphabetic,
     /// Use the ideographic-under baseline.
-    #[cfg(feature = "gecko")]
+    #[parse(condition = "alignment_baseline_all_values_enabled")]
     Ideographic,
     /// In general, use the x-middle baselines; except under text-orientation: upright
     /// (where the alphabetic and x-height baselines are essentially meaningless) use
     /// the central baseline instead.
     Middle,
     /// Use the central baseline.
-    #[cfg(feature = "gecko")]
+    #[parse(condition = "alignment_baseline_all_values_enabled")]
     Central,
     /// Use the math baseline.
-    #[cfg(feature = "gecko")]
+    #[parse(condition = "alignment_baseline_all_values_enabled")]
     Mathematical,
     /// Use the hanging baseline.
-    #[cfg(feature = "gecko")]
+    #[parse(condition = "alignment_baseline_all_values_enabled")]
     Hanging,
     /// Use the text-over baseline.
     TextTop,
     /// Used to implement the deprecated "align=middle" attribute for HTML img elements.
-    #[cfg(feature = "gecko")]
+    #[parse(condition = "alignment_baseline_all_values_enabled")]
     MozMiddleWithBaseline,
 }
 

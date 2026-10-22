@@ -603,7 +603,7 @@ pub mod vertical_align {
             parsed += 1;
 
             try_parse_one!(input, baseline_source, BaselineSource::parse_non_auto);
-            try_parse_one!(input, alignment_baseline, AlignmentBaseline::parse);
+            try_parse_one!(context, input, alignment_baseline, AlignmentBaseline::parse);
             try_parse_one!(context, input, baseline_shift, BaselineShift::parse);
 
             parsed -= 1;
@@ -2934,7 +2934,6 @@ pub mod font_variant {
     }
 }
 
-#[cfg(feature = "gecko")]
 pub mod font_synthesis {
     pub use crate::properties::generated::shorthands::font_synthesis::*;
 
@@ -3042,7 +3041,6 @@ pub mod font_synthesis {
     }
 }
 
-#[cfg(feature = "gecko")]
 pub mod text_box {
     pub use crate::properties::generated::shorthands::text_box::*;
 
