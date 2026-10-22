@@ -36,6 +36,7 @@ use crate::values::{
     specified::{font::SystemFont, length::LineHeightBase, color::ColorSchemeFlags},
 };
 use std::cell::Cell;
+#[cfg(feature = "servo")] use std::sync::atomic::{AtomicU8, Ordering};
 use super::{
     PropertyDeclarationId, PropertyId, NonCustomPropertyId,
     NonCustomPropertyIdSet, PrioritaryPropertyIdSet, PropertyFlags, SourcePropertyDeclaration,
@@ -343,6 +344,16 @@ const _: () = {
     assert!(${i} == ${property.noncustomcsspropertyid()} as usize, "${property.name}");
     % endfor
 };
+% else:
+const EMBEDDER_DEFAULT: u8 = 0;
+const EMBEDDER_ENABLED: u8 = 1;
+const EMBEDDER_DISABLED: u8 = 2;
+
+/// The embedder's choice for each longhand and shorthand that a pref gates, on
+/// top of that pref, as Gecko's `nsCSSProps::gPropertyEnabled` does. Set with
+/// `PropertyId::set_enabled_for_all_content`.
+static EMBEDDER_CHOICES: [AtomicU8; property_counts::LONGHANDS_AND_SHORTHANDS] =
+    [const { AtomicU8::new(EMBEDDER_DEFAULT) }; property_counts::LONGHANDS_AND_SHORTHANDS];
 % endif
 
 impl NonCustomPropertyId {
@@ -377,15 +388,7 @@ impl NonCustomPropertyId {
             % if engine == "gecko":
                 unsafe { structs::nsCSSProps_gPropertyEnabled[self.0 as usize] }
             % else:
-                match self.0 {
-                % for (index, property) in enumerate(data.longhands + data.shorthands + data.all_aliases()):
-                    <% preference = getattr(property, "servo_pref") %>
-                    % if preference:
-                        ${index} => crate::pref!("${preference}"),
-                    % endif %
-                % endfor
-                    _ => true,
-                }
+                self.unaliased().passes_embedder_check()
             % endif
         };
 
@@ -399,6 +402,73 @@ impl NonCustomPropertyId {
 
         false
     }
+
+    % if engine == "servo":
+    /// The embedder's choice for this property, if it made one. `self` is not
+    /// an alias.
+    #[inline]
+    fn embedder_choice(self) -> Option<bool> {
+        match EMBEDDER_CHOICES[self.0 as usize].load(Ordering::Relaxed) {
+            EMBEDDER_ENABLED => Some(true),
+            EMBEDDER_DISABLED => Some(false),
+            _ => None,
+        }
+    }
+
+    /// Whether this property, which is gated at runtime and is not an alias,
+    /// is enabled: the embedder's choice if it made one, otherwise its pref.
+    /// A shorthand is enabled when the longhands that share its pref are.
+    fn passes_embedder_check(self) -> bool {
+        match self.0 {
+        % for (index, property) in enumerate(data.longhands + data.shorthands):
+            <%
+                preference = getattr(property, "servo_pref")
+                followed = [
+                    sub for sub in getattr(property, "sub_properties", [])
+                    if sub.experimental(engine) and not sub.may_be_disabled_in(property, engine)
+                ]
+            %>
+            % if followed:
+            ${index} => ${" && ".join(
+                "NonCustomPropertyId::from_longhand(LonghandId::%s).passes_embedder_check()" % sub.camel_case
+                for sub in followed
+            )},
+            % elif preference:
+            ${index} => self.embedder_choice().unwrap_or_else(|| crate::pref!("${preference}")),
+            % endif
+        % endfor
+            _ => true,
+        }
+    }
+
+    /// Records the embedder's choice for this property (`None` returns it to
+    /// its pref), and for a shorthand, for each of its longhands too. Fails for
+    /// a property that no pref gates.
+    pub(super) fn set_enabled_for_all_content(self, enabled: Option<bool>) -> Result<(), ()> {
+        static GATED: NonCustomPropertyIdSet = ${non_custom_property_id_set(
+            lambda p: p.name != "all" and (
+                p.experimental(engine) or
+                any(sub.experimental(engine) for sub in getattr(p, "sub_properties", []))
+            )
+        )};
+        let id = self.unaliased();
+        if !GATED.contains(id) {
+            return Err(());
+        }
+        let choice = match enabled {
+            None => EMBEDDER_DEFAULT,
+            Some(true) => EMBEDDER_ENABLED,
+            Some(false) => EMBEDDER_DISABLED,
+        };
+        EMBEDDER_CHOICES[id.0 as usize].store(choice, Ordering::Relaxed);
+        if let Some(shorthand) = id.as_shorthand() {
+            for longhand in shorthand.longhands() {
+                EMBEDDER_CHOICES[longhand as usize].store(choice, Ordering::Relaxed);
+            }
+        }
+        Ok(())
+    }
+    % endif
 
     /// Returns whether a given rule allows a given property.
     #[inline]

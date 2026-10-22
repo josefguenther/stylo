@@ -422,6 +422,20 @@ impl PropertyId {
         Ok(id)
     }
 
+    /// Enables or disables a property for all content on top of the pref that gates it, so an
+    /// embedder can choose individual properties rather than whole prefs. `None` returns the
+    /// property to its pref. For a shorthand this also applies to each of its longhands, and a
+    /// shorthand is enabled when the longhands that share its pref are.
+    ///
+    /// Returns an error for an unknown or custom property, or one that no pref gates.
+    #[cfg(feature = "servo")]
+    pub fn set_enabled_for_all_content(name: &str, enabled: Option<bool>) -> Result<(), ()> {
+        let id = Self::parse_unchecked(name, None)?;
+        id.non_custom_id()
+            .ok_or(())?
+            .set_enabled_for_all_content(enabled)
+    }
+
     /// Parses a property name, and returns an error if it's unknown or isn't allowed in this
     /// context.
     #[inline]
@@ -1853,5 +1867,100 @@ impl<'a> Iterator for TransitionPropertyIterator<'a> {
                 TransitionProperty::Unsupported(..) => {},
             }
         }
+    }
+}
+
+#[cfg(all(test, feature = "servo"))]
+mod tests {
+    use super::{parse_style_attribute, PropertyId};
+    use crate::context::QuirksMode;
+    use crate::stylesheets::{CssRuleType, UrlExtraData};
+
+    // The enabled set is process-wide, so each test uses properties behind a pref no other test
+    // in this crate touches.
+
+    fn enabled(name: &str) -> bool {
+        PropertyId::parse_enabled_for_all_content(name).is_ok()
+    }
+
+    fn set(name: &str, enabled: Option<bool>) {
+        PropertyId::set_enabled_for_all_content(name, enabled).unwrap();
+    }
+
+    fn parsed_declarations(css: &str) -> usize {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        )
+        .len()
+    }
+
+    #[test]
+    fn embedder_enables_a_property_its_pref_leaves_off() {
+        assert!(!enabled("writing-mode"));
+        assert_eq!(parsed_declarations("writing-mode: vertical-rl"), 0);
+
+        set("writing-mode", Some(true));
+        assert!(enabled("writing-mode"));
+        assert_eq!(parsed_declarations("writing-mode: vertical-rl"), 1);
+
+        set("writing-mode", None);
+        assert!(!enabled("writing-mode"));
+    }
+
+    #[test]
+    fn embedder_disables_a_property_its_pref_turns_on() {
+        static_prefs::set_pref!("layout.grid.enabled", true);
+        assert!(enabled("grid-template-rows"));
+        assert!(enabled("grid-template"));
+
+        set("grid-template-rows", Some(false));
+        assert!(!enabled("grid-template-rows"));
+        assert!(enabled("grid-template-columns"));
+        assert_eq!(parsed_declarations("grid-template-rows: 10px"), 0);
+        // The shorthands that set it are disabled with it.
+        assert!(!enabled("grid-template"));
+        assert!(!enabled("grid"));
+        assert!(enabled("grid-area"));
+
+        // A shorthand sets its longhands.
+        set("grid-template", Some(true));
+        assert!(enabled("grid-template-rows"));
+        assert!(enabled("grid-template"));
+        assert_eq!(parsed_declarations("grid-template: 10px / 20px"), 3);
+    }
+
+    #[test]
+    fn shorthands_follow_their_longhands() {
+        set("column-count", Some(true));
+        assert!(enabled("column-count"));
+        assert!(!enabled("columns"));
+
+        set("column-width", Some(true));
+        assert!(enabled("columns"));
+        assert_eq!(parsed_declarations("columns: 2"), 2);
+    }
+
+    #[test]
+    fn aliases_follow_their_property() {
+        assert!(!enabled("-webkit-appearance"));
+        set("-webkit-appearance", Some(true));
+        assert!(enabled("appearance"));
+        assert!(enabled("-webkit-appearance"));
+        set("appearance", None);
+        assert!(!enabled("-webkit-appearance"));
+    }
+
+    #[test]
+    fn only_properties_behind_a_pref_can_be_set() {
+        assert!(PropertyId::set_enabled_for_all_content("float", Some(false)).is_err());
+        assert!(PropertyId::set_enabled_for_all_content("all", Some(true)).is_err());
+        assert!(PropertyId::set_enabled_for_all_content("--custom", Some(true)).is_err());
+        assert!(PropertyId::set_enabled_for_all_content("not-a-property", Some(true)).is_err());
+        assert!(enabled("float"));
     }
 }
