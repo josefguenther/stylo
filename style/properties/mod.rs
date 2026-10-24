@@ -2058,4 +2058,30 @@ mod tests {
             "vertical-align: central;"
         );
     }
+
+    #[test]
+    fn anchor_positioning_longhands_follow_their_pref() {
+        let declarations = [
+            "anchor-name: --a, --b",
+            "anchor-scope: all",
+            "position-anchor: --a",
+            "position-try-order: most-width",
+            "position-visibility: no-overflow",
+            "position-try: most-height --a, flip-block",
+            "position-try-fallbacks: --a, flip-inline",
+            "position-area: span-left top",
+        ];
+        for css in declarations {
+            assert_eq!(parsed_declarations(css), 0, "{}", css);
+        }
+
+        static_prefs::set_pref!("layout.css.anchor-positioning.enabled", true);
+        for css in declarations {
+            assert_eq!(serialized(css), format!("{};", css));
+        }
+        assert_eq!(
+            serialized("position-try-order: most-block-size; position-try-fallbacks: --a"),
+            "position-try: most-block-size --a;"
+        );
+    }
 }
