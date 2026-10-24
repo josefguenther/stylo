@@ -2084,4 +2084,14 @@ mod tests {
             "position-try: most-block-size --a;"
         );
     }
+
+    #[test]
+    fn anchor_scope_lists_its_names() {
+        use crate::values::specified::position::ScopedNameList;
+        let all = ScopedNameList::all();
+        assert!(all.is_all());
+        assert!(all.names().is_empty());
+        assert!(!ScopedNameList::none().is_all());
+        assert!(ScopedNameList::none().names().is_empty());
+    }
 }

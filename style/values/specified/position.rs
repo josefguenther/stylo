@@ -447,6 +447,20 @@ impl ScopedNameList {
         });
         ALL.clone()
     }
+
+    /// Whether we're the `all` value.
+    pub fn is_all(&self) -> bool {
+        *self == Self::all()
+    }
+
+    /// The names listed: none for the `none` and `all` values.
+    pub fn names(&self) -> &[AtomIdent] {
+        if self.is_all() {
+            &[]
+        } else {
+            &self.0
+        }
+    }
 }
 
 impl Parse for ScopedNameList {
