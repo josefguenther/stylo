@@ -2086,6 +2086,24 @@ mod tests {
     }
 
     #[test]
+    fn scrollbar_gutter_follows_its_pref() {
+        assert_eq!(parsed_declarations("scrollbar-gutter: stable"), 0);
+
+        static_prefs::set_pref!("layout.css.scrollbar-gutter.enabled", true);
+        for css in ["auto", "stable", "stable both-edges"] {
+            assert_eq!(
+                serialized(&format!("scrollbar-gutter: {}", css)),
+                format!("scrollbar-gutter: {};", css)
+            );
+        }
+        assert_eq!(
+            serialized("scrollbar-gutter: both-edges stable"),
+            "scrollbar-gutter: stable both-edges;"
+        );
+        assert_eq!(parsed_declarations("scrollbar-gutter: both-edges"), 0);
+    }
+
+    #[test]
     fn anchor_scope_lists_its_names() {
         use crate::values::specified::position::ScopedNameList;
         let all = ScopedNameList::all();
