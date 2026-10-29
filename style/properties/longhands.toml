@@ -700,6 +700,16 @@ spec = "https://drafts.csswg.org/css-content/#propdef-content"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
+[frame-sizing]
+type = "FrameSizing"
+initial = "computed::FrameSizing::Auto"
+struct = "position"
+engine = "servo"
+servo_pref = "layout.css.frame-sizing.enabled"
+animation_type = "discrete"
+spec = "https://drafts.csswg.org/css-sizing-4/#frame-sizing"
+affects = "layout"
+
 [max-lines]
 type = "MaxLines"
 initial = "computed::MaxLines::auto()"

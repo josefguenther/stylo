@@ -2273,3 +2273,35 @@ pub enum Continue {
     #[css(keyword = "-webkit-legacy")]
     WebkitLegacy,
 }
+
+/// Values for the `frame-sizing` property: whether an embedded document sizes its frame.
+///
+/// https://drafts.csswg.org/css-sizing-4/#frame-sizing
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum FrameSizing {
+    /// The frame is sized as any replaced element.
+    Auto,
+    /// The frame's natural width is its embedded document's.
+    ContentWidth,
+    /// The frame's natural height is its embedded document's.
+    ContentHeight,
+    /// The frame's natural size in its block axis is its embedded document's.
+    ContentBlockSize,
+    /// The frame's natural size in its inline axis is its embedded document's.
+    ContentInlineSize,
+}

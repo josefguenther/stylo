@@ -21,9 +21,9 @@ use style_traits::{CssWriter, ToCss};
 pub use crate::values::specified::box_::{
     AlignmentBaseline, Appearance, BaselineSource, BreakBetween, BreakWithin, Clear, Contain,
     ContainerName, ContainerType, ContentVisibility, Continue, Display, DominantBaseline, Float,
-    MarginTrim, Overflow, OverflowAnchor, OverscrollBehavior, PositionProperty, ScrollSnapAlign,
-    ScrollSnapAxis, ScrollSnapStop, ScrollSnapStrictness, ScrollSnapType, ScrollbarGutter,
-    TouchAction, WillChange, WritingModeProperty,
+    FrameSizing, MarginTrim, Overflow, OverflowAnchor, OverscrollBehavior, PositionProperty,
+    ScrollSnapAlign, ScrollSnapAxis, ScrollSnapStop, ScrollSnapStrictness, ScrollSnapType,
+    ScrollbarGutter, TouchAction, WillChange, WritingModeProperty,
 };
 
 /// A computed value for the `baseline-shift` property.

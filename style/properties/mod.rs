@@ -2674,4 +2674,24 @@ mod tests {
             "grow per-line 200%"
         );
     }
+
+    #[test]
+    fn frame_sizing_follows_its_pref() {
+        assert_eq!(parsed_declarations("frame-sizing: content-height"), 0);
+
+        static_prefs::set_pref!("layout.css.frame-sizing.enabled", true);
+        for css in [
+            "auto",
+            "content-width",
+            "content-height",
+            "content-block-size",
+            "content-inline-size",
+        ] {
+            assert_eq!(
+                serialized(&format!("frame-sizing: {}", css)),
+                format!("frame-sizing: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("frame-sizing: content"), 0);
+    }
 }
