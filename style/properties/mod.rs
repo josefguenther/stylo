@@ -2207,4 +2207,25 @@ mod tests {
         );
         assert_eq!(parsed_declarations("text-wrap-style: pretty"), 0);
     }
+
+    #[test]
+    fn text_autospace_follows_its_pref() {
+        assert_eq!(parsed_declarations("text-autospace: normal"), 0);
+
+        static_prefs::set_pref!("layout.css.text-autospace.enabled", true);
+        for css in [
+            "normal",
+            "auto",
+            "no-autospace",
+            "ideograph-alpha",
+            "ideograph-alpha ideograph-numeric",
+            "ideograph-numeric insert",
+        ] {
+            assert_eq!(
+                serialized(&format!("text-autospace: {}", css)),
+                format!("text-autospace: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("text-autospace: normal auto"), 0);
+    }
 }

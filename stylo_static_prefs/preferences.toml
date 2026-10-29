@@ -50,6 +50,7 @@
 "layout.css.stylo-work-unit-size" = 16
 "layout.css.supports.at-rule.enabled" = true
 "layout.css.system-ui.enabled" = true
+"layout.css.text-autospace.enabled" = false
 "layout.css.text-box.enabled" = false
 "layout.css.text-decoration-inset-percentage.enabled" = false
 "layout.css.text-wrap-style.enabled" = false
