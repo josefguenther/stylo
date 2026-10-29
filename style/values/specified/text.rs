@@ -1605,3 +1605,50 @@ impl TextSpacingTrim {
         matches!(self, Self::Auto)
     }
 }
+
+/// Values for the `hanging-punctuation` property.
+///
+/// https://drafts.csswg.org/css-text-4/#hanging-punctuation-property
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[css(bitflags(
+    single = "none",
+    mixed = "first,force-end,allow-end,last",
+    validate_mixed = "Self::validate_mixed_flags",
+))]
+#[repr(C)]
+pub struct HangingPunctuation(u8);
+bitflags! {
+    impl HangingPunctuation: u8 {
+        /// No character hangs.
+        const NONE = 0;
+        /// An opening bracket or quote at the start of the first formatted line hangs.
+        const FIRST = 1 << 0;
+        /// A stop or comma at the end of a line always hangs.
+        const FORCE_END = 1 << 1;
+        /// A stop or comma at the end of a line hangs if it does not otherwise fit.
+        const ALLOW_END = 1 << 2;
+        /// A closing bracket or quote at the end of the last formatted line hangs.
+        const LAST = 1 << 3;
+    }
+}
+
+impl HangingPunctuation {
+    fn validate_mixed_flags(&self) -> bool {
+        // `force-end` and `allow-end` are exclusive.
+        !self.contains(Self::FORCE_END | Self::ALLOW_END)
+    }
+}

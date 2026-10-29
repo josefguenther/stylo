@@ -25,8 +25,8 @@ use style_traits::{CssString, CssWriter, ToCss};
 use thin_vec::ThinVec;
 
 pub use crate::values::specified::text::{
-    HyphenateCharacter, LineBreak, MozControlCharacterVisibility, OverflowWrap, RubyPosition,
-    TextAlignLast, TextAutospace, TextBoxEdge, TextBoxTrim, TextDecorationLine,
+    HangingPunctuation, HyphenateCharacter, LineBreak, MozControlCharacterVisibility, OverflowWrap,
+    RubyPosition, TextAlignLast, TextAutospace, TextBoxEdge, TextBoxTrim, TextDecorationLine,
     TextDecorationSkipInk, TextEmphasisPosition, TextJustify, TextOverflow, TextSpacingTrim,
     TextTransform, TextUnderlinePosition, WordBreak,
 };

@@ -2471,4 +2471,38 @@ mod tests {
             "text-spacing-trim: auto; text-autospace: normal;"
         );
     }
+
+    #[test]
+    fn hanging_punctuation_follows_its_pref() {
+        assert_eq!(parsed_declarations("hanging-punctuation: first"), 0);
+
+        static_prefs::set_pref!("layout.css.hanging-punctuation.enabled", true);
+        for (css, expected) in [
+            ("none", "none"),
+            ("first", "first"),
+            ("force-end", "force-end"),
+            ("allow-end", "allow-end"),
+            ("last", "last"),
+            ("last first", "first last"),
+            ("allow-end last first", "first allow-end last"),
+            ("force-end first", "first force-end"),
+        ] {
+            assert_eq!(
+                serialized(&format!("hanging-punctuation: {}", css)),
+                format!("hanging-punctuation: {};", expected)
+            );
+        }
+        for css in [
+            "none first",
+            "first first",
+            "force-end allow-end",
+            "first allow-end force-end last",
+            "20px",
+        ] {
+            assert_eq!(
+                parsed_declarations(&format!("hanging-punctuation: {}", css)),
+                0
+            );
+        }
+    }
 }
