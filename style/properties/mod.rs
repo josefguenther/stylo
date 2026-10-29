@@ -2306,4 +2306,18 @@ mod tests {
         // Gecko parses the block-axis values only, pending w3c/csswg-drafts#13731.
         assert_eq!(parsed_declarations("margin-trim: inline"), 0);
     }
+
+    #[test]
+    fn image_orientation_follows_its_pref() {
+        assert_eq!(parsed_declarations("image-orientation: none"), 0);
+
+        static_prefs::set_pref!("layout.css.image-orientation.enabled", true);
+        for css in ["from-image", "none"] {
+            assert_eq!(
+                serialized(&format!("image-orientation: {}", css)),
+                format!("image-orientation: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("image-orientation: 90deg"), 0);
+    }
 }

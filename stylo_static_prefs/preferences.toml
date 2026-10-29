@@ -28,6 +28,7 @@
 "layout.css.grid-template-subgrid-value.enabled" = false
 "layout.css.has-selector.enabled" = false
 "layout.css.hyphens.enabled" = false
+"layout.css.image-orientation.enabled" = false
 "layout.css.light-dark.images.enabled" = false
 "layout.css.line-clamp.enabled" = false
 "layout.css.margin-rules.enabled" = false
