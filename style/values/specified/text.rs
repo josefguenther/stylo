@@ -1652,3 +1652,85 @@ impl HangingPunctuation {
         !self.contains(Self::FORCE_END | Self::ALLOW_END)
     }
 }
+
+/// Values for the `word-space-transform` property: `none | [ space | ideographic-space ] &&
+/// auto-phrase?`.
+///
+/// https://drafts.csswg.org/css-text-4/#word-space-transform
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[css(bitflags(
+    single = "none",
+    mixed = "space,ideographic-space,auto-phrase",
+    validate_mixed = "Self::validate_mixed_flags",
+))]
+#[repr(C)]
+pub struct WordSpaceTransform(u8);
+bitflags! {
+    impl WordSpaceTransform: u8 {
+        /// Word separators are left as they are.
+        const NONE = 0;
+        /// Word separators become U+0020 spaces.
+        const SPACE = 1 << 0;
+        /// Word separators become U+3000 ideographic spaces.
+        const IDEOGRAPHIC_SPACE = 1 << 1;
+        /// Word separators are inserted between words found by language-specific analysis.
+        const AUTO_PHRASE = 1 << 2;
+    }
+}
+
+impl WordSpaceTransform {
+    fn validate_mixed_flags(&self) -> bool {
+        // Exactly one of `space` and `ideographic-space`.
+        self.intersects(Self::SPACE | Self::IDEOGRAPHIC_SPACE)
+            && !self.contains(Self::SPACE | Self::IDEOGRAPHIC_SPACE)
+    }
+}
+
+/// Values for the `white-space-trim` property: `none | discard-before || discard-after ||
+/// discard-inner`.
+///
+/// https://drafts.csswg.org/css-text-4/#white-space-trim
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[css(bitflags(single = "none", mixed = "discard-before,discard-after,discard-inner"))]
+#[repr(C)]
+pub struct WhiteSpaceTrim(u8);
+bitflags! {
+    impl WhiteSpaceTrim: u8 {
+        /// No white space is discarded.
+        const NONE = 0;
+        /// White space at the beginning of the box is discarded.
+        const DISCARD_BEFORE = 1 << 0;
+        /// White space at the end of the box is discarded.
+        const DISCARD_AFTER = 1 << 1;
+        /// White space at the beginning and end of the box's content is discarded.
+        const DISCARD_INNER = 1 << 2;
+    }
+}

@@ -2505,4 +2505,65 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn word_space_transform_and_white_space_trim_follow_their_prefs() {
+        assert_eq!(parsed_declarations("word-space-transform: space"), 0);
+        assert_eq!(parsed_declarations("white-space-trim: discard-before"), 0);
+
+        static_prefs::set_pref!("layout.css.word-space-transform.enabled", true);
+        for (css, expected) in [
+            ("none", "none"),
+            ("space", "space"),
+            ("ideographic-space", "ideographic-space"),
+            ("space auto-phrase", "space auto-phrase"),
+            (
+                "auto-phrase ideographic-space",
+                "ideographic-space auto-phrase",
+            ),
+        ] {
+            assert_eq!(
+                serialized(&format!("word-space-transform: {}", css)),
+                format!("word-space-transform: {};", expected)
+            );
+        }
+        for css in [
+            "auto",
+            "normal",
+            "auto-phrase",
+            "space ideographic-space",
+            "none auto-phrase",
+        ] {
+            assert_eq!(
+                parsed_declarations(&format!("word-space-transform: {}", css)),
+                0
+            );
+        }
+        assert_eq!(parsed_declarations("white-space-trim: discard-before"), 0);
+
+        static_prefs::set_pref!("layout.css.white-space-trim.enabled", true);
+        for (css, expected) in [
+            ("none", "none"),
+            ("discard-inner", "discard-inner"),
+            (
+                "discard-after discard-before",
+                "discard-before discard-after",
+            ),
+            (
+                "discard-inner discard-after discard-before",
+                "discard-before discard-after discard-inner",
+            ),
+        ] {
+            assert_eq!(
+                serialized(&format!("white-space-trim: {}", css)),
+                format!("white-space-trim: {};", expected)
+            );
+        }
+        for css in ["none discard-inner", "discard-after discard-after"] {
+            assert_eq!(
+                parsed_declarations(&format!("white-space-trim: {}", css)),
+                0
+            );
+        }
+    }
 }
