@@ -847,6 +847,123 @@ pub mod column_rule {
     }
 }
 
+#[cfg(feature = "servo")]
+pub mod text_spacing {
+    pub use crate::properties::generated::shorthands::text_spacing::*;
+
+    use super::*;
+    use crate::properties::longhands::{text_autospace, text_spacing_trim};
+    use crate::values::specified::{TextAutospace, TextSpacingTrim};
+
+    /// `none | auto | <spacing-trim> || <autospace>`, where `text-autospace`'s `normal` is
+    /// taken as an `<autospace>`, as browsers parse it.
+    pub fn parse_value(
+        context: &ParserContext,
+        input: &mut Parser,
+    ) -> Result<Longhands, ParseError> {
+        if input.try_parse(|i| i.expect_ident_matching("none")).is_ok() {
+            return Ok(expanded! {
+                text_spacing_trim: TextSpacingTrim::SpaceAll,
+                text_autospace: TextAutospace::NO_AUTOSPACE,
+            });
+        }
+        if input.try_parse(|i| i.expect_ident_matching("auto")).is_ok() {
+            return Ok(expanded! {
+                text_spacing_trim: TextSpacingTrim::Auto,
+                text_autospace: TextAutospace::AUTO,
+            });
+        }
+        // `normal` is a value of both longhands, so `normal trim-start` takes it as
+        // `text-autospace`'s: the components are tried with `text-spacing-trim` first, then
+        // with `text-autospace` first.
+        let (trim, autospace) = input
+            .try_parse(|i| parse_components(context, i, true))
+            .or_else(|_| parse_components(context, input, false))?;
+        Ok(expanded! {
+            text_spacing_trim: unwrap_or_initial!(text_spacing_trim, trim),
+            text_autospace: unwrap_or_initial!(text_autospace, autospace),
+        })
+    }
+
+    fn parse_trim(input: &mut Parser) -> Result<TextSpacingTrim, ParseError> {
+        let value = TextSpacingTrim::parse(input)?;
+        if value.is_auto() {
+            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+        }
+        Ok(value)
+    }
+
+    fn parse_autospace(
+        context: &ParserContext,
+        input: &mut Parser,
+    ) -> Result<TextAutospace, ParseError> {
+        let value = TextAutospace::parse(context, input)?;
+        if value == TextAutospace::AUTO {
+            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+        }
+        Ok(value)
+    }
+
+    /// `<spacing-trim> || <autospace>` to the end of the input, trying `text-spacing-trim`'s
+    /// value first at each component when `trim_first`, else `text-autospace`'s.
+    fn parse_components(
+        context: &ParserContext,
+        input: &mut Parser,
+        trim_first: bool,
+    ) -> Result<(Option<TextSpacingTrim>, Option<TextAutospace>), ParseError> {
+        let mut trim = None;
+        let mut autospace = None;
+        loop {
+            if trim_first {
+                try_parse_one!(input, trim, parse_trim);
+                try_parse_one!(context, input, autospace, parse_autospace);
+            } else {
+                try_parse_one!(context, input, autospace, parse_autospace);
+                try_parse_one!(input, trim, parse_trim);
+            }
+            break;
+        }
+        if trim.is_none() && autospace.is_none() {
+            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+        }
+        input.expect_exhausted()?;
+        Ok((trim, autospace))
+    }
+
+    impl<'a> ToCss for LonghandsToSerialize<'a> {
+        fn to_css<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
+        where
+            W: fmt::Write,
+        {
+            let trim = *self.text_spacing_trim;
+            // With `text-autospace` disabled, the shorthand sets `text-spacing-trim` alone.
+            let Some(&autospace) = self.text_autospace else {
+                if trim.is_auto() {
+                    return Ok(());
+                }
+                return trim.to_css(dest);
+            };
+            match (trim, autospace) {
+                (TextSpacingTrim::SpaceAll, TextAutospace::NO_AUTOSPACE) => {
+                    return dest.write_str("none")
+                },
+                (TextSpacingTrim::Auto, TextAutospace::AUTO) => return dest.write_str("auto"),
+                // `auto` with anything else is not expressible by the shorthand.
+                (TextSpacingTrim::Auto, _) | (_, TextAutospace::AUTO) => return Ok(()),
+                _ => {},
+            }
+            let mut writer = SequenceWriter::new(dest, " ");
+            if trim != TextSpacingTrim::Normal || autospace == TextAutospace::NORMAL {
+                writer.item(&trim)?;
+            }
+            if autospace != TextAutospace::NORMAL {
+                writer.item(&autospace)?;
+            }
+            Ok(())
+        }
+    }
+}
+
 pub mod text_wrap {
     pub use crate::properties::generated::shorthands::text_wrap::*;
 

@@ -2401,4 +2401,74 @@ mod tests {
             "container: a b / size;"
         );
     }
+
+    #[test]
+    fn text_spacing_trim_and_text_spacing_follow_their_pref() {
+        assert_eq!(parsed_declarations("text-spacing-trim: trim-start"), 0);
+        assert_eq!(parsed_declarations("text-spacing: none"), 0);
+
+        static_prefs::set_pref!("layout.css.text-spacing-trim.enabled", true);
+        for css in [
+            "normal",
+            "auto",
+            "space-all",
+            "space-first",
+            "trim-start",
+            "trim-both",
+            "trim-all",
+        ] {
+            assert_eq!(
+                serialized(&format!("text-spacing-trim: {}", css)),
+                format!("text-spacing-trim: {};", css)
+            );
+        }
+        for css in [
+            "none",
+            "normal space-all",
+            "allow-end",
+            "space-first allow-end",
+        ] {
+            assert_eq!(
+                parsed_declarations(&format!("text-spacing-trim: {}", css)),
+                0
+            );
+        }
+
+        // The shorthand also sets `text-autospace`, behind its own pref.
+        set("text-autospace", Some(true));
+        for (css, expected) in [
+            ("none", "none"),
+            ("auto", "auto"),
+            ("space-all no-autospace", "none"),
+            ("normal normal", "normal"),
+            ("trim-start normal", "trim-start"),
+            ("normal trim-start", "trim-start"),
+            ("no-autospace normal", "no-autospace"),
+            ("trim-start no-autospace", "trim-start no-autospace"),
+            ("ideograph-alpha space-first", "space-first ideograph-alpha"),
+        ] {
+            assert_eq!(
+                serialized(&format!("text-spacing: {}", css)),
+                format!("text-spacing: {};", expected)
+            );
+        }
+        for css in [
+            "none none",
+            "auto auto",
+            "none no-autospace",
+            "space-first auto",
+            "normal normal no-autospace",
+        ] {
+            assert_eq!(parsed_declarations(&format!("text-spacing: {}", css)), 0);
+        }
+        // With no `<autospace>`, `text-autospace` takes its initial value.
+        assert_eq!(
+            serialized("text-spacing: trim-start"),
+            "text-spacing: trim-start no-autospace;"
+        );
+        assert_eq!(
+            serialized("text-spacing-trim: auto; text-autospace: normal"),
+            "text-spacing-trim: auto; text-autospace: normal;"
+        );
+    }
 }

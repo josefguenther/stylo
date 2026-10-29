@@ -1559,3 +1559,49 @@ impl TextBoxTrim {
         TextBoxTrim::NONE
     }
 }
+
+/// Values for the `text-spacing-trim` property.
+///
+/// https://drafts.csswg.org/css-text-4/#text-spacing-trim-property
+#[repr(u8)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+pub enum TextSpacingTrim {
+    /// Set fullwidth opening punctuation with half-width glyphs at the start of each line, and
+    /// collapse it with other half-width punctuation.
+    Normal,
+    /// The user agent chooses the trimming.
+    Auto,
+    /// Don't trim any fullwidth punctuation.
+    SpaceAll,
+    /// Like `trim-start`, except that the first line of a paragraph sets its opening
+    /// punctuation fullwidth.
+    SpaceFirst,
+    /// Trim fullwidth opening punctuation at the start of each line.
+    TrimStart,
+    /// Trim fullwidth punctuation at both the start and end of each line.
+    TrimBoth,
+    /// Trim all fullwidth punctuation next to other punctuation and at line edges.
+    TrimAll,
+}
+
+impl TextSpacingTrim {
+    /// Whether this is the `auto` value.
+    #[inline]
+    pub fn is_auto(&self) -> bool {
+        matches!(self, Self::Auto)
+    }
+}

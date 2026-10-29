@@ -547,6 +547,12 @@ sub_properties = ["text-emphasis-style", "text-emphasis-color"]
 spec = "https://drafts.csswg.org/css-text-decor-3/#text-emphasis-property"
 derive_serialize = true
 
+[text-spacing]
+engine = "servo"
+servo_pref = "layout.css.text-spacing-trim.enabled"
+sub_properties = ["text-spacing-trim", "text-autospace"]
+spec = "https://drafts.csswg.org/css-text-4/#text-spacing-property"
+
 [text-wrap]
 sub_properties = ["text-wrap-mode", "text-wrap-style"]
 spec = "https://www.w3.org/TR/css-text-4/#text-wrap"
