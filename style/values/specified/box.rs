@@ -30,6 +30,11 @@ fn grid_enabled() -> bool {
 }
 
 #[inline]
+fn webkit_box_enabled() -> bool {
+    crate::pref!("layout.css.webkit-box.enabled", gecko = true)
+}
+
+#[inline]
 fn appearance_base_enabled(_context: &ParserContext) -> bool {
     crate::pref!("layout.css.appearance-base.enabled")
 }
@@ -170,7 +175,6 @@ pub enum DisplayInside {
     RubyText,
     #[cfg(feature = "gecko")]
     RubyTextContainer,
-    #[cfg(feature = "gecko")]
     WebkitBox,
 }
 
@@ -261,11 +265,9 @@ impl Display {
     #[cfg(feature = "gecko")]
     pub const Ruby: Self =
         Self(((DisplayOutside::Inline as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::Ruby as u16);
-    #[cfg(feature = "gecko")]
     pub const WebkitBox: Self = Self(
         ((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::WebkitBox as u16,
     );
-    #[cfg(feature = "gecko")]
     pub const WebkitInlineBox: Self = Self(
         ((DisplayOutside::Inline as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::WebkitBox as u16,
     );
@@ -518,10 +520,8 @@ impl DisplayKeyword {
             "ruby-text" => Full(Display::RubyText),
             #[cfg(feature = "gecko")]
             "ruby-text-container" => Full(Display::RubyTextContainer),
-            #[cfg(feature = "gecko")]
-            "-webkit-box" => Full(Display::WebkitBox),
-            #[cfg(feature = "gecko")]
-            "-webkit-inline-box" => Full(Display::WebkitInlineBox),
+            "-webkit-box" if webkit_box_enabled() => Full(Display::WebkitBox),
+            "-webkit-inline-box" if webkit_box_enabled() => Full(Display::WebkitInlineBox),
 
             /// <display-outside> = block | inline | run-in
             /// https://drafts.csswg.org/css-display/#typedef-display-outside
@@ -553,7 +553,6 @@ impl ToCss for Display {
         match *self {
             Display::Block | Display::Inline => outside.to_css(dest),
             Display::InlineBlock => dest.write_str("inline-block"),
-            #[cfg(feature = "gecko")]
             Display::WebkitInlineBox => dest.write_str("-webkit-inline-box"),
             Display::TableCaption => dest.write_str("table-caption"),
             _ => match (outside, inside) {

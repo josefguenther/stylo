@@ -55,6 +55,7 @@
 "layout.css.text-decoration-inset-percentage.enabled" = false
 "layout.css.text-wrap-style.enabled" = false
 "layout.css.tree-counting-functions.enabled" = false
+"layout.css.webkit-box.enabled" = false
 "layout.css.webkit-fill-available.all-size-properties.enabled" = true
 "layout.css.webkit-fill-available.enabled" = true
 "layout.flexbox.balance" = false

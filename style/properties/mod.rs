@@ -2228,4 +2228,32 @@ mod tests {
         }
         assert_eq!(parsed_declarations("text-autospace: normal auto"), 0);
     }
+
+    #[test]
+    fn webkit_box_follows_its_pref() {
+        assert_eq!(parsed_declarations("display: -webkit-box"), 0);
+        assert_eq!(parsed_declarations("-webkit-box-orient: vertical"), 0);
+
+        static_prefs::set_pref!("layout.css.webkit-box.enabled", true);
+        assert_eq!(serialized("display: -webkit-box"), "display: -webkit-box;");
+        assert_eq!(
+            serialized("display: -webkit-inline-box"),
+            "display: -webkit-inline-box;"
+        );
+        assert_eq!(parsed_declarations("display: block -webkit-box"), 0);
+        for (alias, longhand, value) in [
+            ("-webkit-box-orient", "-moz-box-orient", "vertical"),
+            ("-webkit-box-align", "-moz-box-align", "center"),
+            ("-webkit-box-direction", "-moz-box-direction", "reverse"),
+            ("-webkit-box-flex", "-moz-box-flex", "2"),
+            ("-webkit-box-pack", "-moz-box-pack", "justify"),
+            ("-webkit-box-ordinal-group", "-moz-box-ordinal-group", "3"),
+        ] {
+            assert_eq!(
+                serialized(&format!("{}: {}", alias, value)),
+                format!("{}: {};", longhand, value)
+            );
+        }
+        assert_eq!(parsed_declarations("-webkit-box-ordinal-group: -1"), 0);
+    }
 }
