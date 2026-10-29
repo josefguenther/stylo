@@ -191,7 +191,7 @@ def rule_values_from_arg(rule_types):
 
 def to_rust_ident(name):
     name = name.replace("-", "_")
-    if name in ["static", "super", "box", "move"]:  # Rust keywords
+    if name in ["static", "super", "box", "move", "continue"]:  # Rust keywords
         name += "_"
     return name
 
@@ -651,6 +651,7 @@ class Longhand(Property):
                 "Contain",
                 "ContentVisibility",
                 "ContainerType",
+                "Continue",
                 "Display",
                 "DominantBaseline",
                 "FillRule",

@@ -8,9 +8,10 @@ use crate::derives::*;
 use crate::values::animated::ToAnimatedValue;
 use crate::values::computed::length::{LengthPercentage, NonNegativeLength};
 use crate::values::computed::{Context, Integer, Number, ToComputedValue};
+pub use crate::values::generics::box_::BlockEllipsis;
 use crate::values::generics::box_::{
-    GenericBaselineShift, GenericContainIntrinsicSize, GenericLineClamp, GenericOverflowClipMargin,
-    GenericPerspective, GenericScrollbarInset,
+    GenericBaselineShift, GenericContainIntrinsicSize, GenericLineClamp, GenericMaxLines,
+    GenericOverflowClipMargin, GenericPerspective, GenericScrollbarInset,
 };
 use crate::values::generics::GreaterThanOrEqualToOne;
 use crate::values::specified::box_ as specified;
@@ -19,8 +20,8 @@ use style_traits::{CssWriter, ToCss};
 
 pub use crate::values::specified::box_::{
     AlignmentBaseline, Appearance, BaselineSource, BreakBetween, BreakWithin, Clear, Contain,
-    ContainerName, ContainerType, ContentVisibility, Display, DominantBaseline, Float, MarginTrim,
-    Overflow, OverflowAnchor, OverscrollBehavior, PositionProperty, ScrollSnapAlign,
+    ContainerName, ContainerType, ContentVisibility, Continue, Display, DominantBaseline, Float,
+    MarginTrim, Overflow, OverflowAnchor, OverscrollBehavior, PositionProperty, ScrollSnapAlign,
     ScrollSnapAxis, ScrollSnapStop, ScrollSnapStrictness, ScrollSnapType, ScrollbarGutter,
     TouchAction, WillChange, WritingModeProperty,
 };
@@ -50,6 +51,9 @@ impl ContainIntrinsicSize {
 
 /// A computed value for the `line-clamp` property.
 pub type LineClamp = GenericLineClamp<GreaterThanOrEqualToOne<Integer>>;
+
+/// A computed value for the `max-lines` property.
+pub type MaxLines = GenericMaxLines<GreaterThanOrEqualToOne<Integer>>;
 
 /// A computed value for the `perspective` property.
 pub type Perspective = GenericPerspective<NonNegativeLength>;

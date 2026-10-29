@@ -2566,4 +2566,54 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn line_clamp_longhands_follow_their_prefs() {
+        assert_eq!(parsed_declarations("max-lines: 2"), 0);
+        assert_eq!(parsed_declarations("block-ellipsis: ellipsis"), 0);
+        assert_eq!(parsed_declarations("continue: discard"), 0);
+
+        static_prefs::set_pref!("layout.css.max-lines.enabled", true);
+        for (css, expected) in [
+            ("auto", "auto"),
+            ("1", "1"),
+            ("7 auto", "7 auto"),
+            ("auto 8", "8 auto"),
+        ] {
+            assert_eq!(
+                serialized(&format!("max-lines: {}", css)),
+                format!("max-lines: {};", expected)
+            );
+        }
+        for css in ["none", "0", "-5", "auto auto", "3 4", "1 none"] {
+            assert_eq!(parsed_declarations(&format!("max-lines: {}", css)), 0);
+        }
+
+        static_prefs::set_pref!("layout.css.block-ellipsis.enabled", true);
+        for css in ["no-ellipsis", "ellipsis", "\" etc., etc. \""] {
+            assert_eq!(
+                serialized(&format!("block-ellipsis: {}", css)),
+                format!("block-ellipsis: {};", css)
+            );
+        }
+        for css in [
+            "none",
+            "auto",
+            "ellipsis \"string\"",
+            "\"first\" \"second\"",
+        ] {
+            assert_eq!(parsed_declarations(&format!("block-ellipsis: {}", css)), 0);
+        }
+
+        static_prefs::set_pref!("layout.css.continue.enabled", true);
+        for css in ["normal", "discard", "collapse", "-webkit-legacy"] {
+            assert_eq!(
+                serialized(&format!("continue: {}", css)),
+                format!("continue: {};", css)
+            );
+        }
+        for css in ["none", "auto", "normal discard"] {
+            assert_eq!(parsed_declarations(&format!("continue: {}", css)), 0);
+        }
+    }
 }

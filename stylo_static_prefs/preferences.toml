@@ -10,11 +10,13 @@
 "layout.css.at-scope.enabled" = false
 "layout.css.background-clip.border-area.enabled" = false
 "layout.css.basic-shape-shape.enabled" = false
+"layout.css.block-ellipsis.enabled" = false
 "layout.css.calc-typed-arithmetic.enabled" = true
 "layout.css.color-mix-multi-color.enabled" = true
 "layout.css.contain-intrinsic-size.enabled" = false
 "layout.css.content-visibility.enabled" = false
 "layout.css.content.alt-text.enabled" = false
+"layout.css.continue.enabled" = false
 "layout.css.cross-fade.enabled" = false
 "layout.css.custom-media.enabled" = false
 "layout.css.display-animations.enabled" = false
@@ -36,6 +38,7 @@
 "layout.css.margin-rules.enabled" = false
 "layout.css.margin-trim.enabled" = false
 "layout.css.marker.restricted" = true
+"layout.css.max-lines.enabled" = false
 "layout.css.motion-path-url.enabled" = false
 "layout.css.nth-child-of.enabled" = false
 "layout.css.outline-offset.snapping" = 1
