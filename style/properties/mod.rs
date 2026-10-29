@@ -2285,4 +2285,25 @@ mod tests {
         assert_eq!(parsed_declarations("-webkit-line-clamp: 0"), 0);
         assert_eq!(parsed_declarations("line-clamp: 0"), 0);
     }
+
+    #[test]
+    fn margin_trim_follows_its_pref() {
+        assert_eq!(parsed_declarations("margin-trim: block"), 0);
+
+        static_prefs::set_pref!("layout.css.margin-trim.enabled", true);
+        for (css, expected) in [
+            ("none", "none"),
+            ("block", "block"),
+            ("block-start", "block-start"),
+            ("block-end", "block-end"),
+            ("block-end block-start", "block"),
+        ] {
+            assert_eq!(
+                serialized(&format!("margin-trim: {}", css)),
+                format!("margin-trim: {};", expected)
+            );
+        }
+        // Gecko parses the block-axis values only, pending w3c/csswg-drafts#13731.
+        assert_eq!(parsed_declarations("margin-trim: inline"), 0);
+    }
 }
