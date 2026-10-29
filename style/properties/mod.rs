@@ -2112,4 +2112,39 @@ mod tests {
         assert!(!ScopedNameList::none().is_all());
         assert!(ScopedNameList::none().names().is_empty());
     }
+
+    #[test]
+    fn content_visibility_and_contain_intrinsic_size_follow_their_prefs() {
+        assert_eq!(parsed_declarations("content-visibility: hidden"), 0);
+        assert_eq!(parsed_declarations("contain-intrinsic-size: 10px"), 0);
+
+        static_prefs::set_pref!("layout.css.content-visibility.enabled", true);
+        for css in ["visible", "auto", "hidden"] {
+            assert_eq!(
+                serialized(&format!("content-visibility: {}", css)),
+                format!("content-visibility: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("contain-intrinsic-width: 10px"), 0);
+
+        static_prefs::set_pref!("layout.css.contain-intrinsic-size.enabled", true);
+        assert_eq!(parsed_declarations("contain-intrinsic-size: 10px"), 2);
+        assert_eq!(
+            serialized("contain-intrinsic-size: auto 10px none"),
+            "contain-intrinsic-size: auto 10px none;"
+        );
+        assert_eq!(
+            serialized("contain-intrinsic-width: auto none; contain-intrinsic-height: auto none"),
+            "contain-intrinsic-size: auto none;"
+        );
+        assert_eq!(
+            serialized("contain-intrinsic-block-size: 4px"),
+            "contain-intrinsic-block-size: 4px;"
+        );
+        assert_eq!(
+            serialized("contain-intrinsic-inline-size: auto 4px"),
+            "contain-intrinsic-inline-size: auto 4px;"
+        );
+        assert_eq!(parsed_declarations("contain-intrinsic-width: -1px"), 0);
+    }
 }
