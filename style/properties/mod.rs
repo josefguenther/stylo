@@ -2147,4 +2147,41 @@ mod tests {
         );
         assert_eq!(parsed_declarations("contain-intrinsic-width: -1px"), 0);
     }
+
+    #[test]
+    fn hyphenation_follows_its_pref() {
+        assert_eq!(parsed_declarations("hyphens: auto"), 0);
+        assert_eq!(parsed_declarations("hyphenate-character: '='"), 0);
+        assert_eq!(parsed_declarations("hyphenate-limit-chars: 5"), 0);
+
+        static_prefs::set_pref!("layout.css.hyphens.enabled", true);
+        for css in ["none", "manual", "auto"] {
+            assert_eq!(
+                serialized(&format!("hyphens: {}", css)),
+                format!("hyphens: {};", css)
+            );
+        }
+        assert_eq!(serialized("-moz-hyphens: auto"), "hyphens: auto;");
+        assert_eq!(
+            serialized("hyphenate-character: auto"),
+            "hyphenate-character: auto;"
+        );
+        assert_eq!(
+            serialized("hyphenate-character: \"=\""),
+            "hyphenate-character: \"=\";"
+        );
+        for (css, expected) in [
+            ("auto", "auto"),
+            ("5", "5"),
+            ("6 2", "6 2"),
+            ("6 auto 3", "6 auto 3"),
+            ("auto auto auto", "auto"),
+        ] {
+            assert_eq!(
+                serialized(&format!("hyphenate-limit-chars: {}", css)),
+                format!("hyphenate-limit-chars: {};", expected)
+            );
+        }
+        assert_eq!(parsed_declarations("hyphens: always"), 0);
+    }
 }
