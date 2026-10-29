@@ -197,3 +197,46 @@ pub enum TextEmphasisStyle {
     /// `<string>` (of which only the first grapheme cluster will be used).
     String(crate::OwnedStr),
 }
+
+/// A computed value for the `text-fit` property: `consistent` when no method was specified.
+#[derive(Clone, Debug, MallocSizeOf, PartialEq, ToResolvedValue, ToTyped)]
+#[typed(todo_derive_fields)]
+pub struct TextFit {
+    /// Whether, and which way, contents are scaled.
+    pub kind: specified::TextFitKind,
+    /// Which lines are scaled.
+    pub method: specified::TextFitMethod,
+    /// The limit of the scaling factor, if any.
+    pub limit: Option<crate::values::computed::Percentage>,
+}
+
+impl TextFit {
+    /// The `none` value.
+    #[inline]
+    pub fn none() -> Self {
+        Self {
+            kind: specified::TextFitKind::None,
+            method: specified::TextFitMethod::Consistent,
+            limit: None,
+        }
+    }
+}
+
+impl ToCss for TextFit {
+    fn to_css<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
+    where
+        W: Write,
+    {
+        self.kind.to_css(dest)?;
+        // `consistent` is the method when none is given, so it is left out.
+        if self.method != specified::TextFitMethod::Consistent {
+            dest.write_char(' ')?;
+            self.method.to_css(dest)?;
+        }
+        if let Some(ref limit) = self.limit {
+            dest.write_char(' ')?;
+            limit.to_css(dest)?;
+        }
+        Ok(())
+    }
+}

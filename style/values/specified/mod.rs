@@ -112,7 +112,7 @@ pub use self::text::{TextBoxEdge, TextBoxTrim, TextSpacingTrim};
 pub use self::text::{
     TextDecorationInset, TextDecorationLength, TextDecorationSkipInk, TextJustify, TextTransform,
 };
-pub use self::text::{WhiteSpaceTrim, WordSpaceTransform};
+pub use self::text::{TextFit, WhiteSpaceTrim, WordSpaceTransform};
 pub use self::time::{NoCalcTime, Time};
 pub use self::transform::{Rotate, Scale, Transform};
 pub use self::transform::{TransformBox, TransformOrigin, TransformStyle, Translate};

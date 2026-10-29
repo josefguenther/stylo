@@ -2645,6 +2645,17 @@ animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-text-4/#white-space-trim"
 affects = "layout"
 
+[text-fit]
+type = "TextFit"
+initial = "computed::TextFit::none()"
+initial_specified_value = "specified::TextFit::none()"
+struct = "inherited_text"
+engine = "servo"
+servo_pref = "layout.css.text-fit.enabled"
+animation_type = "discrete"
+spec = "https://drafts.csswg.org/css-text-5/#text-fit-property"
+affects = "layout"
+
 [text-spacing-trim]
 type = "TextSpacingTrim"
 initial = "computed::TextSpacingTrim::Normal"

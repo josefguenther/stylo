@@ -60,6 +60,7 @@
 "layout.css.text-autospace.enabled" = false
 "layout.css.text-box.enabled" = false
 "layout.css.text-decoration-inset-percentage.enabled" = false
+"layout.css.text-fit.enabled" = false
 "layout.css.text-spacing-trim.enabled" = false
 "layout.css.text-wrap-style.enabled" = false
 "layout.css.tree-counting-functions.enabled" = false

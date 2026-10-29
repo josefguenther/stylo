@@ -2616,4 +2616,62 @@ mod tests {
             assert_eq!(parsed_declarations(&format!("continue: {}", css)), 0);
         }
     }
+
+    #[test]
+    fn text_fit_follows_its_pref() {
+        use crate::values::computed;
+        use crate::values::specified::text::{TextFitKind, TextFitMethod};
+        use style_traits::ToCss;
+
+        assert_eq!(parsed_declarations("text-fit: grow"), 0);
+
+        static_prefs::set_pref!("layout.css.text-fit.enabled", true);
+        for css in [
+            "none",
+            "grow",
+            "shrink",
+            "grow consistent",
+            "grow per-line",
+            "grow per-line-all",
+            "grow per-line 132%",
+            "grow consistent 300%",
+            "shrink per-line 4%",
+        ] {
+            assert_eq!(
+                serialized(&format!("text-fit: {}", css)),
+                format!("text-fit: {};", css)
+            );
+        }
+        for css in [
+            "larger",
+            "stretch per-line",
+            "grow 150% consistent",
+            "consistent 100%",
+            "grow consistent 1.0",
+        ] {
+            assert_eq!(parsed_declarations(&format!("text-fit: {}", css)), 0);
+        }
+
+        // The computed value leaves out `consistent`, the method when none is given.
+        let computed = |kind, method, limit: Option<f32>| {
+            computed::TextFit {
+                kind,
+                method,
+                limit: limit.map(computed::Percentage),
+            }
+            .to_css_string()
+        };
+        assert_eq!(
+            computed(TextFitKind::Grow, TextFitMethod::Consistent, None),
+            "grow"
+        );
+        assert_eq!(
+            computed(TextFitKind::Shrink, TextFitMethod::Consistent, Some(0.2)),
+            "shrink 20%"
+        );
+        assert_eq!(
+            computed(TextFitKind::Grow, TextFitMethod::PerLine, Some(2.)),
+            "grow per-line 200%"
+        );
+    }
 }

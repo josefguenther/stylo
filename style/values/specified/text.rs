@@ -1734,3 +1734,135 @@ bitflags! {
         const DISCARD_INNER = 1 << 2;
     }
 }
+
+/// How `text-fit` scales a line's inline-level contents.
+#[repr(u8)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+)]
+pub enum TextFitKind {
+    /// Contents are not scaled.
+    None,
+    /// Contents are scaled up to fill the line box.
+    Grow,
+    /// Contents are scaled down to fit the line box.
+    Shrink,
+}
+
+/// Which lines `text-fit` scales, and by which factor.
+#[repr(u8)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+)]
+pub enum TextFitMethod {
+    /// Every line by the same factor.
+    Consistent,
+    /// Each line by its own factor, but the last line and those ending in a forced break.
+    PerLine,
+    /// Each line by its own factor.
+    PerLineAll,
+}
+
+/// A specified value for the `text-fit` property: `[ none | grow | shrink ] [ consistent |
+/// per-line | per-line-all ]? <percentage>?`.
+///
+/// https://drafts.csswg.org/css-text-5/#text-fit-property
+#[derive(Clone, Debug, MallocSizeOf, PartialEq, SpecifiedValueInfo, ToShmem, ToTyped)]
+#[typed(todo_derive_fields)]
+pub struct TextFit {
+    /// Whether, and which way, contents are scaled.
+    pub kind: TextFitKind,
+    /// Which lines are scaled, if specified.
+    pub method: Option<TextFitMethod>,
+    /// The limit of the scaling factor, if specified.
+    pub limit: Option<crate::values::specified::Percentage>,
+}
+
+impl TextFit {
+    /// The `none` value.
+    #[inline]
+    pub fn none() -> Self {
+        Self {
+            kind: TextFitKind::None,
+            method: None,
+            limit: None,
+        }
+    }
+}
+
+impl Parse for TextFit {
+    fn parse(context: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
+        let kind = TextFitKind::parse(input)?;
+        let method = input.try_parse(TextFitMethod::parse).ok();
+        let limit = input
+            .try_parse(|i| crate::values::specified::Percentage::parse(context, i))
+            .ok();
+        Ok(Self {
+            kind,
+            method,
+            limit,
+        })
+    }
+}
+
+impl ToCss for TextFit {
+    fn to_css<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
+    where
+        W: Write,
+    {
+        let mut writer = SequenceWriter::new(dest, " ");
+        writer.item(&self.kind)?;
+        if let Some(ref method) = self.method {
+            writer.item(method)?;
+        }
+        if let Some(ref limit) = self.limit {
+            writer.item(limit)?;
+        }
+        Ok(())
+    }
+}
+
+impl ToComputedValue for TextFit {
+    type ComputedValue = computed::text::TextFit;
+
+    fn to_computed_value(&self, context: &Context) -> Self::ComputedValue {
+        computed::text::TextFit {
+            kind: self.kind,
+            method: self.method.unwrap_or(TextFitMethod::Consistent),
+            limit: self.limit.as_ref().map(|l| l.to_computed_value(context)),
+        }
+    }
+
+    fn from_computed_value(computed: &Self::ComputedValue) -> Self {
+        Self {
+            kind: computed.kind,
+            method: Some(computed.method),
+            limit: computed
+                .limit
+                .as_ref()
+                .map(ToComputedValue::from_computed_value),
+        }
+    }
+}
