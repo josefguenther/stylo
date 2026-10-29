@@ -18,6 +18,7 @@
 "layout.css.cross-fade.enabled" = false
 "layout.css.custom-media.enabled" = false
 "layout.css.display-animations.enabled" = false
+"layout.css.display.flow-root-list-item.enabled" = false
 "layout.css.dominant-baseline.enabled" = false
 "layout.css.ellipse-corners.enabled" = false
 "layout.css.fit-content-function.enabled" = true

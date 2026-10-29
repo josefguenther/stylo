@@ -2320,4 +2320,24 @@ mod tests {
         }
         assert_eq!(parsed_declarations("image-orientation: 90deg"), 0);
     }
+
+    #[test]
+    fn flow_root_list_items_follow_their_pref() {
+        assert_eq!(parsed_declarations("display: flow-root list-item"), 0);
+        assert_eq!(serialized("display: list-item"), "display: list-item;");
+
+        static_prefs::set_pref!("layout.css.display.flow-root-list-item.enabled", true);
+        for (css, expected) in [
+            ("flow-root list-item", "flow-root list-item"),
+            ("list-item flow-root", "flow-root list-item"),
+            ("block flow-root list-item", "flow-root list-item"),
+            ("inline flow-root list-item", "inline flow-root list-item"),
+        ] {
+            assert_eq!(
+                serialized(&format!("display: {}", css)),
+                format!("display: {};", expected)
+            );
+        }
+        assert_eq!(parsed_declarations("display: flex list-item"), 0);
+    }
 }
