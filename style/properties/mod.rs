@@ -2256,4 +2256,33 @@ mod tests {
         }
         assert_eq!(parsed_declarations("-webkit-box-ordinal-group: -1"), 0);
     }
+
+    #[test]
+    fn line_clamp_follows_its_pref() {
+        assert_eq!(parsed_declarations("line-clamp: 3"), 0);
+        assert_eq!(parsed_declarations("-webkit-line-clamp: 3"), 0);
+
+        static_prefs::set_pref!("layout.css.line-clamp.enabled", true);
+        for (css, expected) in [
+            ("none", "none"),
+            ("3", "3"),
+            ("auto", "auto"),
+            ("3 \"…\"", "3 \"…\""),
+            ("no-ellipsis 2", "2 no-ellipsis"),
+            ("2 -webkit-legacy", "2 -webkit-legacy"),
+        ] {
+            assert_eq!(
+                serialized(&format!("line-clamp: {}", css)),
+                format!("line-clamp: {};", expected)
+            );
+        }
+        // A legacy shorthand's block serializes as its longhand.
+        assert_eq!(
+            serialized("-webkit-line-clamp: 3"),
+            "line-clamp: 3 -webkit-legacy;"
+        );
+        assert_eq!(serialized("-webkit-line-clamp: none"), "line-clamp: none;");
+        assert_eq!(parsed_declarations("-webkit-line-clamp: 0"), 0);
+        assert_eq!(parsed_declarations("line-clamp: 0"), 0);
+    }
 }

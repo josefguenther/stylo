@@ -242,7 +242,6 @@ impl Display {
     );
     pub const Block: Self =
         Self(((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::Flow as u16);
-    #[cfg(feature = "gecko")]
     pub const FlowRoot: Self = Self(
         ((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::FlowRoot as u16,
     );
@@ -1515,7 +1514,6 @@ impl LineClamp {
     }
 
     /// Serializes the legacy `-webkit-line-clamp` syntax.
-    #[cfg_attr(feature = "servo", allow(unused))]
     pub(crate) fn to_css_legacy<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
     where
         W: fmt::Write,
