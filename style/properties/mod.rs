@@ -2340,4 +2340,65 @@ mod tests {
         }
         assert_eq!(parsed_declarations("display: flex list-item"), 0);
     }
+
+    #[test]
+    fn container_queries_follow_their_pref() {
+        use crate::media_queries::MediaList;
+        use crate::servo_arc::Arc;
+        use crate::shared_lock::{SharedRwLock, ToCssWithGuard};
+        use crate::stylesheets::{
+            AllowImportRules, CssRule, Origin, Stylesheet, StylesheetInDocument,
+        };
+
+        fn container_rules(css: &str) -> Vec<String> {
+            let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+            let lock = SharedRwLock::new();
+            let media = Arc::new(lock.wrap(MediaList::empty()));
+            let sheet = Stylesheet::from_str(
+                css,
+                url_data,
+                Origin::Author,
+                media,
+                lock.clone(),
+                None,
+                None,
+                QuirksMode::NoQuirks,
+                AllowImportRules::Yes,
+            );
+            let guard = lock.read();
+            let contents = sheet.contents(&guard);
+            contents
+                .rules(&guard)
+                .iter()
+                .filter_map(|rule| match rule {
+                    CssRule::Container(rule) => {
+                        let mut css = String::new();
+                        rule.to_css(&guard, &mut css).unwrap();
+                        Some(css)
+                    },
+                    _ => None,
+                })
+                .collect()
+        }
+
+        let sheet = "@container card (width > 10px) { p { color: green } }";
+        assert!(container_rules(sheet).is_empty());
+        assert_eq!(parsed_declarations("container: card / inline-size"), 0);
+
+        static_prefs::set_pref!("layout.container-queries.enabled", true);
+        assert_eq!(
+            container_rules(sheet),
+            vec!["@container card (width > 10px) {\n  p { color: green; }\n}".to_owned()]
+        );
+        assert_eq!(parsed_declarations("container: card / inline-size"), 2);
+        assert_eq!(
+            serialized("container: card / inline-size"),
+            "container: card / inline-size;"
+        );
+        assert_eq!(serialized("container: none"), "container: none;");
+        assert_eq!(
+            serialized("container-name: a b; container-type: size"),
+            "container: a b / size;"
+        );
+    }
 }
