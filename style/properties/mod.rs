@@ -2184,4 +2184,27 @@ mod tests {
         }
         assert_eq!(parsed_declarations("hyphens: always"), 0);
     }
+
+    #[test]
+    fn text_wrap_style_and_text_wrap_follow_their_pref() {
+        assert_eq!(parsed_declarations("text-wrap-style: balance"), 0);
+        assert_eq!(parsed_declarations("text-wrap: nowrap"), 0);
+        assert_eq!(parsed_declarations("text-wrap-mode: nowrap"), 1);
+
+        static_prefs::set_pref!("layout.css.text-wrap-style.enabled", true);
+        for css in ["auto", "stable", "balance"] {
+            assert_eq!(
+                serialized(&format!("text-wrap-style: {}", css)),
+                format!("text-wrap-style: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("text-wrap: nowrap balance"), 2);
+        assert_eq!(serialized("text-wrap: nowrap"), "text-wrap: nowrap;");
+        assert_eq!(serialized("text-wrap: balance"), "text-wrap: balance;");
+        assert_eq!(
+            serialized("text-wrap: stable nowrap"),
+            "text-wrap: nowrap stable;"
+        );
+        assert_eq!(parsed_declarations("text-wrap-style: pretty"), 0);
+    }
 }
