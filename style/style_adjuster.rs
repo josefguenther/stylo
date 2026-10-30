@@ -164,12 +164,32 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
     fn adjust_for_webkit_line_clamp(&mut self) {
         use crate::properties::longhands::_moz_box_orient::computed_value::T as BoxOrient;
         use crate::values::specified::box_::{DisplayInside, DisplayOutside};
-        let box_style = self.style.get_box();
-        let line_clamp = box_style.clone_line_clamp();
-        if line_clamp.is_none() {
+        let line_clamp = self.style.get_box().clone_line_clamp();
+        // `line-clamp` is a shorthand of these three in CSS Overflow 4; `block-ellipsis` inherits,
+        // so a clamped box's descendants read it from here.
+        #[cfg(feature = "servo")]
+        if !line_clamp.is_none() {
+            use crate::values::computed::Continue;
+            let box_style = self.style.mutate_box();
+            box_style.set_max_lines(line_clamp.max_lines.clone());
+            box_style.set_continue_(if line_clamp.webkit_legacy {
+                Continue::WebkitLegacy
+            } else {
+                Continue::Collapse
+            });
+            self.style
+                .mutate_inherited_text()
+                .set_block_ellipsis(line_clamp.block_ellipsis.clone());
+        }
+        #[cfg(feature = "servo")]
+        let clamps = self.style.get_box().clone_continue_() != crate::values::computed::Continue::Normal;
+        #[cfg(feature = "gecko")]
+        let clamps = !line_clamp.is_none();
+        if !clamps {
             return;
         }
 
+        let box_style = self.style.get_box();
         let disp = box_style.clone_display();
         if disp.inside() != DisplayInside::WebkitBox
             || self.style.get_xul().clone__moz_box_orient() != BoxOrient::Vertical
@@ -1078,5 +1098,117 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
             self.adjust_for_try_tactic(try_tactic);
         }
         self.set_bits();
+    }
+}
+
+#[cfg(all(test, feature = "servo"))]
+mod tests {
+    use super::StyleAdjuster;
+    use crate::context::QuirksMode;
+    use crate::device::servo::FontMetricsProvider;
+    use crate::device::Device;
+    use crate::font_metrics::FontMetrics;
+    use crate::properties::longhands::_moz_box_orient::computed_value::T as BoxOrient;
+    use crate::properties::style_structs::Font;
+    use crate::properties::{ComputedValues, StyleBuilder};
+    use crate::queries::values::PrefersColorScheme;
+    use crate::servo::media_features::PointerCapabilities;
+    use crate::values::computed::font::{GenericFontFamily, QueryFontMetricsFlags};
+    use crate::values::computed::{BlockEllipsis, CSSPixelLength, Continue, Display, Length, LineClamp, MaxLines};
+    use crate::values::specified::box_::{DisplayInside, DisplayOutside};
+
+    #[derive(Debug)]
+    struct NoFonts;
+
+    impl FontMetricsProvider for NoFonts {
+        fn query_font_metrics(
+            &self,
+            _: bool,
+            _: &Font,
+            _: CSSPixelLength,
+            _: QueryFontMetricsFlags,
+        ) -> FontMetrics {
+            FontMetrics::default()
+        }
+
+        fn base_size_for_generic(&self, _: GenericFontFamily) -> Length {
+            Length::new(16.)
+        }
+    }
+
+    fn device() -> Device {
+        use euclid::{Scale, Size2D};
+        let values = ComputedValues::initial_values_with_font_override(Font::initial_values());
+        Device::new(
+            crate::media_queries::MediaType::screen(),
+            QuirksMode::NoQuirks,
+            Size2D::new(800., 600.),
+            Size2D::new(800., 600.),
+            Scale::new(1.),
+            Box::new(NoFonts),
+            values,
+            PrefersColorScheme::Light,
+            PointerCapabilities::empty(),
+            PointerCapabilities::empty(),
+        )
+    }
+
+    /// What the adjustment leaves of a box of `display`, `orient` and `line_clamp`.
+    fn adjusted(display: Display, orient: BoxOrient, line_clamp: LineClamp) -> (Display, Continue, BlockEllipsis) {
+        let device = device();
+        let mut builder = StyleBuilder::for_inheritance(&device, None, None, None);
+        builder.mutate_box().set_adjusted_display(display, false);
+        builder.mutate_xul().set__moz_box_orient(orient);
+        builder.mutate_box().set_line_clamp(line_clamp);
+        StyleAdjuster::new(&mut builder).adjust_for_webkit_line_clamp();
+        (
+            builder.get_box().clone_display(),
+            builder.get_box().clone_continue_(),
+            builder.get_inherited_text().clone_block_ellipsis(),
+        )
+    }
+
+    fn clamp(webkit_legacy: bool) -> LineClamp {
+        let mut value = LineClamp::none();
+        value.max_lines = MaxLines::auto();
+        value.block_ellipsis = BlockEllipsis::String("x".into());
+        value.webkit_legacy = webkit_legacy;
+        value
+    }
+
+    #[test]
+    fn line_clamp_sets_what_its_longhands_would() {
+        let (display, continue_, ellipsis) = adjusted(Display::Block, BoxOrient::Horizontal, clamp(false));
+        assert_eq!(display, Display::Block);
+        assert_eq!(continue_, Continue::Collapse);
+        assert_eq!(ellipsis, BlockEllipsis::String("x".into()));
+    }
+
+    #[test]
+    fn webkit_line_clamp_keeps_its_legacy_continue() {
+        let (_, continue_, _) = adjusted(Display::Block, BoxOrient::Horizontal, clamp(true));
+        assert_eq!(continue_, Continue::WebkitLegacy);
+    }
+
+    #[test]
+    fn no_line_clamp_changes_nothing() {
+        let (display, continue_, ellipsis) = adjusted(Display::WebkitBox, BoxOrient::Vertical, LineClamp::none());
+        assert_eq!(display, Display::WebkitBox);
+        assert_eq!(continue_, Continue::Normal);
+        assert_eq!(ellipsis, BlockEllipsis::NoEllipsis);
+    }
+
+    #[test]
+    fn a_vertical_webkit_box_that_clamps_is_a_block_container() {
+        let block = adjusted(Display::WebkitBox, BoxOrient::Vertical, clamp(true)).0;
+        assert_eq!(block.inside(), DisplayInside::FlowRoot);
+        assert_eq!(block.outside(), DisplayOutside::Block);
+        let inline = adjusted(Display::WebkitInlineBox, BoxOrient::Vertical, clamp(false)).0;
+        assert_eq!(inline, Display::InlineBlock);
+        // A horizontal one stays the flex-like box `continue` does not apply to.
+        assert_eq!(
+            adjusted(Display::WebkitBox, BoxOrient::Horizontal, clamp(false)).0,
+            Display::WebkitBox
+        );
     }
 }
