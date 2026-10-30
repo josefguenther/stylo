@@ -2192,7 +2192,7 @@ mod tests {
         assert_eq!(parsed_declarations("text-wrap-mode: nowrap"), 1);
 
         static_prefs::set_pref!("layout.css.text-wrap-style.enabled", true);
-        for css in ["auto", "stable", "balance"] {
+        for css in ["auto", "stable", "balance", "pretty"] {
             assert_eq!(
                 serialized(&format!("text-wrap-style: {}", css)),
                 format!("text-wrap-style: {};", css)
@@ -2205,7 +2205,8 @@ mod tests {
             serialized("text-wrap: stable nowrap"),
             "text-wrap: nowrap stable;"
         );
-        assert_eq!(parsed_declarations("text-wrap-style: pretty"), 0);
+        assert_eq!(serialized("text-wrap: pretty"), "text-wrap: pretty;");
+        assert_eq!(parsed_declarations("text-wrap-style: fancy"), 0);
     }
 
     #[test]
