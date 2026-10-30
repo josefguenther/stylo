@@ -2720,4 +2720,18 @@ mod tests {
         }
         assert_eq!(parsed_declarations("frame-sizing: content"), 0);
     }
+
+    #[test]
+    fn resize_follows_its_pref() {
+        assert_eq!(parsed_declarations("resize: both"), 0);
+
+        static_prefs::set_pref!("layout.css.resize.enabled", true);
+        for css in ["none", "both", "horizontal", "vertical", "block", "inline"] {
+            assert_eq!(
+                serialized(&format!("resize: {}", css)),
+                format!("resize: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("resize: diagonal"), 0);
+    }
 }
