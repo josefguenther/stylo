@@ -1010,8 +1010,9 @@ impl Parse for TextIndent {
                 }
             }
 
-            // Servo doesn't support the keywords, so just break and let the caller deal with it.
-            if cfg!(feature = "servo") {
+            // Servo builds parse the keywords behind a pref; without it, just break and let
+            // the caller deal with it.
+            if cfg!(feature = "servo") && !crate::pref!("layout.css.text-indent-keywords.enabled") {
                 break;
             }
 

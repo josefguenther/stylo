@@ -2773,4 +2773,23 @@ mod tests {
             "word-break: break-word;"
         );
     }
+
+    #[test]
+    fn text_indent_keywords_follow_their_pref() {
+        assert_eq!(parsed_declarations("text-indent: 1em hanging"), 0);
+        assert_eq!(parsed_declarations("text-indent: 1em"), 1);
+
+        static_prefs::set_pref!("layout.css.text-indent-keywords.enabled", true);
+        for css in ["1em hanging", "1em each-line", "1em hanging each-line"] {
+            assert_eq!(
+                serialized(&format!("text-indent: {}", css)),
+                format!("text-indent: {};", css)
+            );
+        }
+        assert_eq!(
+            serialized("text-indent: each-line hanging 1em"),
+            "text-indent: 1em hanging each-line;"
+        );
+        assert_eq!(parsed_declarations("text-indent: hanging"), 0);
+    }
 }
