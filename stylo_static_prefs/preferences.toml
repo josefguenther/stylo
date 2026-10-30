@@ -68,6 +68,7 @@
 "layout.css.webkit-box.enabled" = false
 "layout.css.webkit-fill-available.all-size-properties.enabled" = true
 "layout.css.webkit-fill-available.enabled" = true
+"layout.css.word-break-auto-phrase.enabled" = false
 "layout.css.white-space-trim.enabled" = false
 "layout.css.word-space-transform.enabled" = false
 "layout.flexbox.balance" = false

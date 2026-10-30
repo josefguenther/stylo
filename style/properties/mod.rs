@@ -2210,6 +2210,18 @@ mod tests {
     }
 
     #[test]
+    fn word_break_auto_phrase_follows_its_pref() {
+        assert_eq!(parsed_declarations("word-break: auto-phrase"), 0);
+        assert_eq!(parsed_declarations("word-break: keep-all"), 1);
+
+        static_prefs::set_pref!("layout.css.word-break-auto-phrase.enabled", true);
+        assert_eq!(
+            serialized("word-break: auto-phrase"),
+            "word-break: auto-phrase;"
+        );
+    }
+
+    #[test]
     fn text_autospace_follows_its_pref() {
         assert_eq!(parsed_declarations("text-autospace: normal"), 0);
 
