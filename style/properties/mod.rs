@@ -2747,4 +2747,18 @@ mod tests {
         assert_eq!(serialized("counter-set: none"), "counter-set: none;");
         assert_eq!(parsed_declarations("counter-set: 1"), 0);
     }
+
+    #[test]
+    fn text_decoration_skip_ink_follows_its_pref() {
+        assert_eq!(parsed_declarations("text-decoration-skip-ink: none"), 0);
+
+        static_prefs::set_pref!("layout.css.text-decoration-skip-ink.enabled", true);
+        for css in ["auto", "none", "all"] {
+            assert_eq!(
+                serialized(&format!("text-decoration-skip-ink: {}", css)),
+                format!("text-decoration-skip-ink: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("text-decoration-skip-ink: some"), 0);
+    }
 }
