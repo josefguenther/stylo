@@ -945,6 +945,9 @@ class PropertiesData(object):
                 if 'initial' not in args and not args.get('vector'):
                     raise TypeError(f"{name} should have an initial value (only vector properties should lack one)")
                 args['initial_value'] = args.pop('initial', None)
+                servo_initial = args.pop('servo_initial', None)
+                if servo_initial is not None and self.engine == "servo":
+                    args['initial_value'] = servo_initial
                 self.declare_longhand(style_struct, name, **args)
 
         for group, props in self.logical_groups.items():

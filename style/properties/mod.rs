@@ -2222,6 +2222,13 @@ mod tests {
     }
 
     #[test]
+    fn text_autospace_is_normal_initially() {
+        use crate::properties::longhands::text_autospace;
+        use crate::values::specified::TextAutospace;
+        assert_eq!(text_autospace::get_initial_value(), TextAutospace::NORMAL);
+    }
+
+    #[test]
     fn text_autospace_follows_its_pref() {
         assert_eq!(parsed_declarations("text-autospace: normal"), 0);
 
@@ -2483,7 +2490,7 @@ mod tests {
         // With no `<autospace>`, `text-autospace` takes its initial value.
         assert_eq!(
             serialized("text-spacing: trim-start"),
-            "text-spacing: trim-start no-autospace;"
+            "text-spacing: trim-start;"
         );
         assert_eq!(
             serialized("text-spacing-trim: auto; text-autospace: normal"),

@@ -2679,6 +2679,7 @@ affects = "layout"
 [text-autospace]
 type = "TextAutospace"
 initial = "computed::text::TextAutospace::NO_AUTOSPACE"
+servo_initial = "computed::text::TextAutospace::NORMAL"
 struct = "inherited_text"
 servo_pref = "layout.css.text-autospace.enabled"
 animation_type = "discrete"
