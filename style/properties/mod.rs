@@ -2384,8 +2384,14 @@ mod tests {
         let sheet = "@container card (width > 10px) { p { color: green } }";
         assert!(container_rules(sheet).is_empty());
         assert_eq!(parsed_declarations("container: card / inline-size"), 0);
+        for unit in ["cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax"] {
+            assert_eq!(parsed_declarations(&format!("width: 10{unit}")), 0);
+        }
 
         static_prefs::set_pref!("layout.container-queries.enabled", true);
+        for unit in ["cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax"] {
+            assert_eq!(parsed_declarations(&format!("width: 10{unit}")), 1);
+        }
         assert_eq!(
             container_rules(sheet),
             vec!["@container card (width > 10px) {\n  p { color: green; }\n}".to_owned()]
