@@ -2761,4 +2761,16 @@ mod tests {
         }
         assert_eq!(parsed_declarations("text-decoration-skip-ink: some"), 0);
     }
+
+    #[test]
+    fn word_break_break_word_follows_its_pref() {
+        assert_eq!(parsed_declarations("word-break: break-word"), 0);
+        assert_eq!(parsed_declarations("word-break: break-all"), 1);
+
+        static_prefs::set_pref!("layout.css.word-break-break-word.enabled", true);
+        assert_eq!(
+            serialized("word-break: break-word"),
+            "word-break: break-word;"
+        );
+    }
 }

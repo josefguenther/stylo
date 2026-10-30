@@ -856,12 +856,17 @@ pub enum WordBreak {
     ///
     /// Specifying `word-break: break-word` makes `overflow-wrap` behave as
     /// `anywhere`, and `word-break` behave like `normal`.
-    #[cfg(feature = "gecko")]
+    #[cfg_attr(feature = "servo", parse(condition = "word_break_break_word_enabled"))]
     BreakWord,
     /// The auto-phrase value: soft wrap opportunities only between phrases.
     #[cfg(feature = "servo")]
     #[parse(condition = "word_break_auto_phrase_enabled")]
     AutoPhrase,
+}
+
+#[cfg(feature = "servo")]
+fn word_break_break_word_enabled(_: &ParserContext) -> bool {
+    crate::pref!("layout.css.word-break-break-word.enabled")
 }
 
 #[cfg(feature = "servo")]

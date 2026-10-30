@@ -73,6 +73,7 @@
 "layout.css.webkit-fill-available.enabled" = true
 "layout.css.word-break-auto-phrase.enabled" = false
 "layout.css.white-space-trim.enabled" = false
+"layout.css.word-break-break-word.enabled" = false
 "layout.css.word-space-transform.enabled" = false
 "layout.flexbox.balance" = false
 "layout.grid.enabled" = false
