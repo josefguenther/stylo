@@ -2734,4 +2734,17 @@ mod tests {
         }
         assert_eq!(parsed_declarations("resize: diagonal"), 0);
     }
+
+    #[test]
+    fn counter_set_follows_its_pref() {
+        assert_eq!(parsed_declarations("counter-set: a 1"), 0);
+
+        static_prefs::set_pref!("layout.css.counter-set.enabled", true);
+        assert_eq!(
+            serialized("counter-set: a 1 b"),
+            "counter-set: a 1 b 0;".to_owned()
+        );
+        assert_eq!(serialized("counter-set: none"), "counter-set: none;");
+        assert_eq!(parsed_declarations("counter-set: 1"), 0);
+    }
 }

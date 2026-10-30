@@ -17,6 +17,7 @@
 "layout.css.content-visibility.enabled" = false
 "layout.css.content.alt-text.enabled" = false
 "layout.css.continue.enabled" = false
+"layout.css.counter-set.enabled" = false
 "layout.css.cross-fade.enabled" = false
 "layout.css.custom-media.enabled" = false
 "layout.css.display-animations.enabled" = false
