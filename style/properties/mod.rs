@@ -1506,7 +1506,7 @@ pub struct SourcePropertyDeclaration {
 #[cfg(feature = "gecko")]
 size_of_test!(SourcePropertyDeclaration, 632);
 #[cfg(feature = "servo")]
-size_of_test!(SourcePropertyDeclaration, 568);
+size_of_test!(SourcePropertyDeclaration, 600);
 
 impl SourcePropertyDeclaration {
     /// Create one with a single PropertyDeclaration.
@@ -2791,5 +2791,24 @@ mod tests {
             "text-indent: 1em hanging each-line;"
         );
         assert_eq!(parsed_declarations("text-indent: hanging"), 0);
+    }
+
+    #[test]
+    fn font_variant_emoji_follows_its_pref() {
+        assert_eq!(parsed_declarations("font-variant-emoji: emoji"), 0);
+        assert_eq!(serialized("font-variant: small-caps"), "font-variant: small-caps;");
+
+        static_prefs::set_pref!("layout.css.font-variant-emoji.enabled", true);
+        for css in ["normal", "text", "emoji", "unicode"] {
+            assert_eq!(
+                serialized(&format!("font-variant-emoji: {}", css)),
+                format!("font-variant-emoji: {};", css)
+            );
+        }
+        assert_eq!(
+            serialized("font-variant: small-caps emoji"),
+            "font-variant: small-caps emoji;"
+        );
+        assert_eq!(serialized("font: 12px serif"), "font: 12px serif;");
     }
 }

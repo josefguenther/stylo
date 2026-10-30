@@ -3883,7 +3883,7 @@ keyword = { values = ["auto", "none", "normal"], gecko_constant_prefix = "NS_FON
 
 [font-variant-emoji]
 struct = "font"
-engine = "gecko"
+servo_pref = "layout.css.font-variant-emoji.enabled"
 spec = "https://drafts.csswg.org/css-fonts/#propdef-font-variant-emoji"
 animation_type = "discrete"
 affects = "layout"

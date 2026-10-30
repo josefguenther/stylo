@@ -28,6 +28,7 @@
 "layout.css.font-palette.enabled" = false
 "layout.css.font-synthesis.enabled" = false
 "layout.css.font-tech.enabled" = false
+"layout.css.font-variant-emoji.enabled" = false
 "layout.css.frame-sizing.enabled" = false
 "layout.css.grid-template-masonry-value.enabled" = false
 "layout.css.grid-template-subgrid-value.enabled" = false
