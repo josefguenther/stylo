@@ -2763,6 +2763,18 @@ mod tests {
     }
 
     #[test]
+    fn first_line_follows_its_pref() {
+        use crate::selector_parser::SelectorParser;
+
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let parses = || SelectorParser::parse_author_origin_no_namespace("p::first-line", &url_data).is_ok();
+        assert!(!parses());
+
+        static_prefs::set_pref!("layout.css.first-line.enabled", true);
+        assert!(parses());
+    }
+
+    #[test]
     fn word_break_break_word_follows_its_pref() {
         assert_eq!(parsed_declarations("word-break: break-word"), 0);
         assert_eq!(parsed_declarations("word-break: break-all"), 1);
