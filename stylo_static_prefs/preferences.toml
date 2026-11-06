@@ -65,6 +65,7 @@
 "layout.css.progress-function.enabled" = true
 "layout.css.properties-and-values.enabled" = true
 "layout.css.random.enabled" = false
+"layout.css.resize.enabled" = false
 "layout.css.revert-rule.enabled" = true
 "layout.css.ruby.enabled" = false
 "layout.css.scroll-behavior.enabled" = false
