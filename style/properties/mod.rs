@@ -1896,3 +1896,75 @@ impl<'a> Iterator for TransitionPropertyIterator<'a> {
         }
     }
 }
+
+#[cfg(all(test, feature = "servo"))]
+mod tests {
+    use super::{PropertyId, parse_style_attribute};
+    use crate::context::QuirksMode;
+    use crate::stylesheets::{CssRuleType, UrlExtraData};
+
+    // Preferences are process-wide, so each test turns on preferences no other test in this crate
+    // touches.
+
+    fn enabled(name: &str) -> bool {
+        PropertyId::parse_enabled_for_all_content(name).is_ok()
+    }
+
+    fn parsed_declarations(css: &str) -> usize {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        )
+        .len()
+    }
+
+    fn serialized(css: &str) -> String {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let block = parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        );
+        let mut result = String::new();
+        block.to_css(&mut result).unwrap();
+        result
+    }
+
+    #[test]
+    fn alignment_baseline_values_behind_a_pref() {
+        let values = [
+            "alphabetic",
+            "ideographic",
+            "central",
+            "mathematical",
+            "hanging",
+        ];
+        for value in values {
+            let css = format!("alignment-baseline: {}", value);
+            assert_eq!(parsed_declarations(&css), 0, "{}", value);
+        }
+        assert_eq!(parsed_declarations("alignment-baseline: middle"), 1);
+
+        static_prefs::set_pref!("layout.css.alignment-baseline.all-values.enabled", true);
+        for value in values {
+            let css = format!("alignment-baseline: {}", value);
+            assert_eq!(serialized(&css), format!("{};", css));
+        }
+        assert_eq!(
+            serialized("vertical-align: central"),
+            "vertical-align: central;"
+        );
+        // Gecko's value for the `align=middle` attribute stays Gecko's.
+        assert_eq!(
+            parsed_declarations("alignment-baseline: -moz-middle-with-baseline"),
+            0
+        );
+        assert!(enabled("alignment-baseline"));
+    }
+}

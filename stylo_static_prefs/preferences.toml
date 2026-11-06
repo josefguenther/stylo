@@ -1,6 +1,7 @@
 "dom.select.customizable_select.enabled" = false
 "dom.viewTransitions.cross-document.enabled" = false
 "gfx.font_rendering.opentype_svg.enabled" = false
+"layout.css.alignment-baseline.all-values.enabled" = false
 "layout.css.alpha-color-function.enabled" = true
 "layout.css.anchor-positioning.enabled" = false
 "layout.css.appearance-base.enabled" = false
