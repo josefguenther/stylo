@@ -22,6 +22,7 @@
 "layout.css.content.alt-text.enabled" = false
 "layout.css.continue.enabled" = false
 "layout.css.corner-shape.enabled" = false
+"layout.css.counter-set.enabled" = false
 "layout.css.counters.enabled" = false
 "layout.css.cross-fade.enabled" = false
 "layout.css.custom-media.enabled" = false
