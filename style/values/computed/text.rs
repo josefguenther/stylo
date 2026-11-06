@@ -30,7 +30,7 @@ pub use crate::values::specified::text::{
     TextCombineUpright, TextDecorationLine, TextDecorationSkipInk, TextDecorationStyle,
     TextEmphasisPosition, TextJustify, TextOverflow, TextRendering, TextSecurity, TextSizeAdjust,
     TextSpacingTrim, TextTransform, TextUnderlinePosition, TextWrapMode, TextWrapStyle,
-    UnicodeBidi, WhiteSpaceCollapse, WordBreak,
+    UnicodeBidi, WhiteSpaceCollapse, WhiteSpaceTrim, WordBreak, WordSpaceTransform,
 };
 
 /// A computed value for the `initial-letter` property.
