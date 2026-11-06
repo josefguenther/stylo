@@ -25,6 +25,14 @@ use style_traits::{SpecifiedValueInfo, StyleParseErrorKind, ToCss};
 use thin_vec::ThinVec;
 
 #[inline]
+fn flow_root_list_item_enabled() -> bool {
+    crate::pref!(
+        "layout.css.display.flow-root-list-item.enabled",
+        gecko = true
+    )
+}
+
+#[inline]
 fn webkit_box_enabled() -> bool {
     crate::pref!("layout.css.webkit-box.enabled", gecko = true)
 }
@@ -183,8 +191,7 @@ impl DisplayInside {
     fn is_valid_for_list_item(self) -> bool {
         match self {
             DisplayInside::Flow => true,
-            #[cfg(feature = "gecko")]
-            DisplayInside::FlowRoot => true,
+            DisplayInside::FlowRoot => flow_root_list_item_enabled(),
             _ => false,
         }
     }
