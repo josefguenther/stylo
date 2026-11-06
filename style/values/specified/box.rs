@@ -10,10 +10,11 @@ use crate::parser::{Parse, ParserContext};
 use crate::properties::{LonghandId, PropertyDeclarationId, PropertyId};
 pub use crate::typed_om::{KeywordValue, ToTyped, TypedValue};
 use crate::values::CustomIdent;
+pub use crate::values::generics::box_::BlockEllipsis;
 use crate::values::generics::box_::{
-    BaselineShiftKeyword, BlockEllipsis, GenericBaselineShift, GenericContainIntrinsicSize,
-    GenericLineClamp, GenericOverflowClipMargin, GenericPerspective, GenericScrollbarInset,
-    MaxLines, OverflowClipMarginBox,
+    BaselineShiftKeyword, GenericBaselineShift, GenericContainIntrinsicSize, GenericLineClamp,
+    GenericMaxLines, GenericOverflowClipMargin, GenericPerspective, GenericScrollbarInset,
+    OverflowClipMarginBox,
 };
 use crate::values::specified::length::{LengthPercentage, NonNegativeLength};
 use crate::values::specified::{AllowQuirks, NonNegativeNumberOrPercentage, PositiveInteger};
@@ -717,6 +718,9 @@ pub type ContainIntrinsicSize = GenericContainIntrinsicSize<NonNegativeLength>;
 
 /// A specified value for the `line-clamp` property.
 pub type LineClamp = GenericLineClamp<PositiveInteger>;
+
+/// A specified value for the `max-lines` property.
+pub type MaxLines = GenericMaxLines<PositiveInteger>;
 
 /// A specified value for the `baseline-shift` property.
 pub type BaselineShift = GenericBaselineShift<LengthPercentage>;
@@ -1443,7 +1447,7 @@ impl Parse for ContainIntrinsicSize {
     }
 }
 
-impl Parse for MaxLines<PositiveInteger> {
+impl Parse for MaxLines {
     fn parse(context: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
         let mut lines = None;
         let mut auto = false;
@@ -2639,4 +2643,36 @@ pub enum BoxPack {
 pub enum DirectionProperty {
     Ltr,
     Rtl,
+}
+
+/// Values for the `continue` property.
+///
+/// https://drafts.csswg.org/css-overflow-4/#propdef-continue
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum Continue {
+    /// The box's content continues as normal, in its next fragment if it is fragmented.
+    Normal,
+    /// The box's content after its first fragmentation break is discarded.
+    Discard,
+    /// The box's content after its first fragmentation break is hidden and laid out as if it
+    /// collapsed to nothing.
+    Collapse,
+    /// `-webkit-line-clamp`'s legacy behavior.
+    #[css(keyword = "-webkit-legacy")]
+    WebkitLegacy,
 }

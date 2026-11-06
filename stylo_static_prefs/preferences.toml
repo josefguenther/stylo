@@ -11,6 +11,7 @@
 "layout.css.background-clip.border-area.enabled" = false
 "layout.css.background-clip.text.enabled" = false
 "layout.css.basic-shape-shape.enabled" = false
+"layout.css.block-ellipsis.enabled" = false
 "layout.css.calc-typed-arithmetic.enabled" = true
 "layout.css.color-mix-multi-color.enabled" = true
 "layout.css.columns.enabled" = false
@@ -19,6 +20,7 @@
 "layout.css.container-queries.enabled" = false
 "layout.css.content-visibility.enabled" = false
 "layout.css.content.alt-text.enabled" = false
+"layout.css.continue.enabled" = false
 "layout.css.corner-shape.enabled" = false
 "layout.css.counters.enabled" = false
 "layout.css.cross-fade.enabled" = false
@@ -52,6 +54,7 @@
 "layout.css.marker.restricted" = true
 "layout.css.masking.enabled" = false
 "layout.css.math-properties.enabled" = false
+"layout.css.max-lines.enabled" = false
 "layout.css.motion-path-url.enabled" = false
 "layout.css.motion-path.enabled" = false
 "layout.css.nth-child-of.enabled" = false
