@@ -2565,4 +2565,15 @@ mod tests {
         }
         assert_eq!(parsed_declarations("frame-sizing: content"), 0);
     }
+    #[test]
+    fn word_break_auto_phrase_follows_its_pref() {
+        assert_eq!(parsed_declarations("word-break: auto-phrase"), 0);
+        assert_eq!(parsed_declarations("word-break: keep-all"), 1);
+
+        static_prefs::set_pref!("layout.css.word-break-auto-phrase.enabled", true);
+        assert_eq!(
+            serialized("word-break: auto-phrase"),
+            "word-break: auto-phrase;"
+        );
+    }
 }

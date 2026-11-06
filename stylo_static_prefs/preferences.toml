@@ -101,6 +101,7 @@
 "layout.css.webkit-text-fill-color.enabled" = false
 "layout.css.white-space-collapse.preserve-spaces.enabled" = false
 "layout.css.white-space-trim.enabled" = false
+"layout.css.word-break-auto-phrase.enabled" = false
 "layout.css.word-break.break-word.enabled" = false
 "layout.css.word-space-transform.enabled" = false
 "layout.css.writing-mode.enabled" = false
