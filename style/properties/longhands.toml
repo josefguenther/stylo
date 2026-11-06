@@ -55,7 +55,7 @@
 type = "NonNegativeNumber"
 initial = "From::from(0.)"
 struct = "xul"
-engine = "gecko"
+servo_pref = "layout.css.webkit-box.enabled"
 gecko_ffi_name = "mBoxFlex"
 aliases = ["-webkit-box-flex"]
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-flex)"
@@ -66,7 +66,7 @@ affects = "layout"
 type = "Integer"
 initial = "1"
 struct = "xul"
-engine = "gecko"
+servo_pref = "layout.css.webkit-box.enabled"
 parse_method = "parse_non_negative"
 aliases = ["-webkit-box-ordinal-group"]
 gecko_ffi_name = "mBoxOrdinal"
@@ -4240,7 +4240,7 @@ initial = "computed::FieldSizing::Fixed"
 
 [-moz-box-align]
 struct = "xul"
-engine = "gecko"
+servo_pref = "layout.css.webkit-box.enabled"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-align)"
 animation_type = "discrete"
 affects = "layout"
@@ -4251,7 +4251,7 @@ initial = "computed::BoxAlign::Stretch"
 
 [-moz-box-direction]
 struct = "xul"
-engine = "gecko"
+servo_pref = "layout.css.webkit-box.enabled"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-direction)"
 animation_type = "discrete"
 affects = "layout"
@@ -4262,7 +4262,7 @@ initial = "computed::BoxDirection::Normal"
 
 [-moz-box-orient]
 struct = "xul"
-engine = "gecko"
+servo_pref = "layout.css.webkit-box.enabled"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-orient)"
 animation_type = "discrete"
 affects = "layout"
@@ -4273,7 +4273,7 @@ initial = "computed::BoxOrient::Horizontal"
 
 [-moz-box-pack]
 struct = "xul"
-engine = "gecko"
+servo_pref = "layout.css.webkit-box.enabled"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-pack)"
 animation_type = "discrete"
 affects = "layout"
