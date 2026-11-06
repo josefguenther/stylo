@@ -638,6 +638,7 @@ class Longhand(Property):
                 "FillRule",
                 "FlexWrap",
                 "Float",
+                "FrameSizing",
                 "FontLanguageOverride",
                 "FontSynthesis",
                 "FontSynthesisStyle",

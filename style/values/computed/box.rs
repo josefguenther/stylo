@@ -22,7 +22,7 @@ pub use crate::values::specified::box_::{
     AlignmentBaseline, Appearance, BackfaceVisibility, BaselineSource, BoxAlign, BoxCollapse,
     BoxDirection, BoxOrient, BoxPack, BreakBetween, BreakWithin, Clear, Contain, ContainerName,
     ContainerType, ContentVisibility, Continue, DirectionProperty, Display, DominantBaseline,
-    Float, ImageOrientation, Isolation, MarginTrim, Orient, Overflow, OverflowAnchor,
+    Float, FrameSizing, ImageOrientation, Isolation, MarginTrim, Orient, Overflow, OverflowAnchor,
     OverscrollBehavior, PositionProperty, ScrollBehavior, ScrollSnapAlign, ScrollSnapAxis,
     ScrollSnapStop, ScrollSnapStrictness, ScrollSnapType, ScrollbarGutter, TextOrientation,
     TopLayer, TouchAction, Visibility, WillChange, WritingModeProperty,
