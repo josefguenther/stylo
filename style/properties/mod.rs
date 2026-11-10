@@ -2658,4 +2658,33 @@ mod tests {
         }
         assert_eq!(parsed_declarations("overflow-anchor: visible"), 0);
     }
+
+    #[test]
+    fn column_fill_and_column_rule_follow_the_columns_pref() {
+        assert_eq!(parsed_declarations("column-fill: auto"), 0);
+        assert_eq!(parsed_declarations("column-rule: 1px solid red"), 0);
+
+        static_prefs::set_pref!("layout.css.columns.enabled", true);
+        for css in ["auto", "balance"] {
+            assert_eq!(
+                serialized(&format!("column-fill: {}", css)),
+                format!("column-fill: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("column-fill: some"), 0);
+        assert_eq!(
+            serialized("column-rule-width: 3px"),
+            "column-rule-width: 3px;"
+        );
+        assert_eq!(
+            serialized("column-rule-style: dotted"),
+            "column-rule-style: dotted;"
+        );
+        assert_eq!(
+            serialized("column-rule-color: red"),
+            "column-rule-color: red;"
+        );
+        assert_eq!(parsed_declarations("column-rule: 1px solid red"), 3);
+        assert_eq!(parsed_declarations("column-rule-width: -1px"), 0);
+    }
 }
