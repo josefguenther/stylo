@@ -318,15 +318,24 @@ fn consume_operation_or_colon(input: &mut Parser) -> Result<Option<Operator>, Pa
 
 #[allow(unused_variables)]
 fn disabled_by_pref(feature: &Atom, context: &ParserContext) -> bool {
+    // prefers-reduced-transparency is always enabled in the ua and chrome. On
+    // the web it is hidden behind a preference (see Bug 1822176).
+    if *feature == atom!("prefers-reduced-transparency") {
+        return !context.chrome_rules_enabled()
+            && !crate::pref!("layout.css.prefers-reduced-transparency.enabled");
+    }
+
+    // Servo evaluates prefers-contrast and prefers-reduced-motion from the
+    // values its embedder sets, and parses them only behind a preference.
+    if *feature == atom!("prefers-contrast") {
+        return !crate::pref!("layout.css.prefers-contrast.enabled", gecko = true);
+    }
+    if *feature == atom!("prefers-reduced-motion") {
+        return !crate::pref!("layout.css.prefers-reduced-motion.enabled", gecko = true);
+    }
+
     #[cfg(feature = "gecko")]
     {
-        // prefers-reduced-transparency is always enabled in the ua and chrome. On
-        // the web it is hidden behind a preference (see Bug 1822176).
-        if *feature == atom!("prefers-reduced-transparency") {
-            return !context.chrome_rules_enabled()
-                && !crate::pref!("layout.css.prefers-reduced-transparency.enabled");
-        }
-
         // inverted-colors is always enabled in the ua and chrome. On
         // the web it is hidden behind a preference.
         if *feature == atom!("inverted-colors") {

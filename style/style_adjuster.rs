@@ -1102,7 +1102,9 @@ mod tests {
     use crate::properties::longhands::_moz_box_orient::computed_value::T as BoxOrient;
     use crate::properties::style_structs::Font;
     use crate::properties::{ComputedValues, StyleBuilder};
-    use crate::queries::values::PrefersColorScheme;
+    use crate::queries::values::{
+        PrefersColorScheme, PrefersContrast, PrefersReducedMotion, PrefersReducedTransparency,
+    };
     use crate::servo::media_features::PointerCapabilities;
     use crate::values::computed::font::{GenericFontFamily, QueryFontMetricsFlags};
     use crate::values::computed::{
@@ -1142,6 +1144,9 @@ mod tests {
                 device_pixel_ratio: Scale::new(1.),
                 quirks_mode: QuirksMode::NoQuirks,
                 prefers_color_scheme: PrefersColorScheme::Light,
+                prefers_contrast: PrefersContrast::NoPreference,
+                prefers_reduced_motion: PrefersReducedMotion::NoPreference,
+                prefers_reduced_transparency: PrefersReducedTransparency::NoPreference,
                 primary_pointer_capabilities: PointerCapabilities::empty(),
                 all_pointer_capabilities: PointerCapabilities::empty(),
             },

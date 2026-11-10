@@ -6,7 +6,10 @@
 
 use crate::derives::*;
 use crate::queries::feature::{AllowsRanges, Evaluator, FeatureFlags, QueryFeatureDescription};
-use crate::queries::values::{Orientation, PrefersColorScheme};
+use crate::queries::values::{
+    Orientation, PrefersColorScheme, PrefersContrast, PrefersReducedMotion,
+    PrefersReducedTransparency,
+};
 use crate::values::computed::{CSSPixelLength, Context, Ratio, Resolution};
 use std::fmt::Debug;
 
@@ -67,6 +70,39 @@ fn eval_prefers_color_scheme(context: &Context, query_value: Option<PrefersColor
     match query_value {
         Some(v) => context.device().color_scheme() == v,
         None => true,
+    }
+}
+
+/// https://drafts.csswg.org/mediaqueries-5/#prefers-contrast
+fn eval_prefers_contrast(context: &Context, query_value: Option<PrefersContrast>) -> bool {
+    let prefers_contrast = context.device().prefers_contrast();
+    match query_value {
+        Some(v) => prefers_contrast == v,
+        None => prefers_contrast != PrefersContrast::NoPreference,
+    }
+}
+
+/// https://drafts.csswg.org/mediaqueries-5/#prefers-reduced-motion
+fn eval_prefers_reduced_motion(
+    context: &Context,
+    query_value: Option<PrefersReducedMotion>,
+) -> bool {
+    let prefers_reduced_motion = context.device().prefers_reduced_motion();
+    match query_value {
+        Some(v) => prefers_reduced_motion == v,
+        None => prefers_reduced_motion != PrefersReducedMotion::NoPreference,
+    }
+}
+
+/// https://drafts.csswg.org/mediaqueries-5/#prefers-reduced-transparency
+fn eval_prefers_reduced_transparency(
+    context: &Context,
+    query_value: Option<PrefersReducedTransparency>,
+) -> bool {
+    let prefers_reduced_transparency = context.device().prefers_reduced_transparency();
+    match query_value {
+        Some(v) => prefers_reduced_transparency == v,
+        None => prefers_reduced_transparency != PrefersReducedTransparency::NoPreference,
     }
 }
 
@@ -160,7 +196,7 @@ fn eval_aspect_ratio(context: &Context) -> Ratio {
 }
 
 /// A list with all the media features that Servo supports.
-pub static MEDIA_FEATURES: [QueryFeatureDescription; 15] = [
+pub static MEDIA_FEATURES: [QueryFeatureDescription; 18] = [
     feature!(
         atom!("width"),
         AllowsRanges::Yes,
@@ -251,4 +287,178 @@ pub static MEDIA_FEATURES: [QueryFeatureDescription; 15] = [
         keyword_evaluator!(eval_prefers_color_scheme, PrefersColorScheme),
         FeatureFlags::empty(),
     ),
+    feature!(
+        atom!("prefers-contrast"),
+        AllowsRanges::No,
+        keyword_evaluator!(eval_prefers_contrast, PrefersContrast),
+        FeatureFlags::empty(),
+    ),
+    feature!(
+        atom!("prefers-reduced-motion"),
+        AllowsRanges::No,
+        keyword_evaluator!(eval_prefers_reduced_motion, PrefersReducedMotion),
+        FeatureFlags::empty(),
+    ),
+    feature!(
+        atom!("prefers-reduced-transparency"),
+        AllowsRanges::No,
+        keyword_evaluator!(
+            eval_prefers_reduced_transparency,
+            PrefersReducedTransparency
+        ),
+        FeatureFlags::empty(),
+    ),
 ];
+
+#[cfg(test)]
+mod tests {
+    use crate::context::QuirksMode;
+    use crate::device::Device;
+    use crate::device::servo::{FontMetricsProvider, MediaData};
+    use crate::font_metrics::FontMetrics;
+    use crate::media_queries::{MediaList, MediaType};
+    use crate::parser::ParserContext;
+    use crate::properties::ComputedValues;
+    use crate::properties::style_structs::Font;
+    use crate::queries::values::{
+        PrefersColorScheme, PrefersContrast, PrefersReducedMotion, PrefersReducedTransparency,
+    };
+    use crate::servo::media_features::PointerCapabilities;
+    use crate::stylesheets::{CssRuleType, CustomMediaEvaluator, Origin, UrlExtraData};
+    use crate::values::computed::font::{GenericFontFamily, QueryFontMetricsFlags};
+    use crate::values::computed::{CSSPixelLength, Length};
+    use cssparser::Parser;
+    use euclid::{Scale, Size2D};
+    use style_traits::ParsingMode;
+
+    #[derive(Debug)]
+    struct NoFonts;
+
+    impl FontMetricsProvider for NoFonts {
+        fn query_font_metrics(
+            &self,
+            _: bool,
+            _: &Font,
+            _: CSSPixelLength,
+            _: QueryFontMetricsFlags,
+        ) -> FontMetrics {
+            FontMetrics::default()
+        }
+
+        fn base_size_for_generic(&self, _: GenericFontFamily) -> Length {
+            Length::new(16.)
+        }
+    }
+
+    fn device(
+        contrast: PrefersContrast,
+        motion: PrefersReducedMotion,
+        transparency: PrefersReducedTransparency,
+    ) -> Device {
+        Device::new(
+            ComputedValues::initial_values_with_font_override(Font::initial_values()),
+            Box::new(NoFonts),
+            MediaData {
+                media_type: MediaType::screen(),
+                viewport_size: Size2D::new(800., 600.),
+                device_size: Size2D::new(800., 600.),
+                device_pixel_ratio: Scale::new(1.),
+                quirks_mode: QuirksMode::NoQuirks,
+                prefers_color_scheme: PrefersColorScheme::Light,
+                prefers_contrast: contrast,
+                prefers_reduced_motion: motion,
+                prefers_reduced_transparency: transparency,
+                primary_pointer_capabilities: PointerCapabilities::empty(),
+                all_pointer_capabilities: PointerCapabilities::empty(),
+            },
+        )
+    }
+
+    fn media_list(css: &str) -> MediaList {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let mut context = ParserContext::new(
+            Origin::Author,
+            &url_data,
+            Some(CssRuleType::Media),
+            ParsingMode::DEFAULT,
+            QuirksMode::NoQuirks,
+            Default::default(),
+            None,
+            None,
+            Default::default(),
+        );
+
+        MediaList::parse(&mut context, &mut Parser::new(css))
+    }
+
+    fn matches(device: &Device, css: &str) -> bool {
+        media_list(css).evaluate(
+            device,
+            QuirksMode::NoQuirks,
+            &mut CustomMediaEvaluator::none(),
+        )
+    }
+
+    #[test]
+    fn preference_media_features_follow_their_prefs_and_the_device() {
+        // Preferences are process-wide, and no other test in this crate touches these.
+        let none = device(
+            PrefersContrast::NoPreference,
+            PrefersReducedMotion::NoPreference,
+            PrefersReducedTransparency::NoPreference,
+        );
+        // With their preferences off, the features are unknown, so a query naming one, or its
+        // negation, matches nothing.
+        for css in [
+            "(prefers-contrast: no-preference)",
+            "not (prefers-contrast: more)",
+            "(prefers-reduced-motion: no-preference)",
+            "not (prefers-reduced-motion: reduce)",
+            "(prefers-reduced-transparency: no-preference)",
+            "not (prefers-reduced-transparency: reduce)",
+        ] {
+            assert!(!matches(&none, css), "{}", css);
+        }
+
+        static_prefs::set_pref!("layout.css.prefers-contrast.enabled", true);
+        static_prefs::set_pref!("layout.css.prefers-reduced-motion.enabled", true);
+        static_prefs::set_pref!("layout.css.prefers-reduced-transparency.enabled", true);
+        assert!(!matches(&none, "(prefers-reduced-motion: more)"));
+        assert!(!matches(&none, "not (prefers-reduced-motion: more)"));
+        assert!(matches(&none, "not (prefers-reduced-motion: reduce)"));
+
+        assert!(matches(&none, "(prefers-contrast: no-preference)"));
+        assert!(!matches(&none, "(prefers-contrast)"));
+        assert!(matches(&none, "(prefers-reduced-motion: no-preference)"));
+        assert!(!matches(&none, "(prefers-reduced-motion)"));
+        assert!(!matches(&none, "(prefers-reduced-transparency: reduce)"));
+
+        for (contrast, css) in [
+            (PrefersContrast::More, "more"),
+            (PrefersContrast::Less, "less"),
+            (PrefersContrast::Custom, "custom"),
+        ] {
+            let device = device(
+                contrast,
+                PrefersReducedMotion::NoPreference,
+                PrefersReducedTransparency::NoPreference,
+            );
+            assert!(matches(&device, &format!("(prefers-contrast: {})", css)));
+            assert!(matches(&device, "(prefers-contrast)"));
+            assert!(!matches(&device, "(prefers-contrast: no-preference)"));
+        }
+
+        let reduced = device(
+            PrefersContrast::NoPreference,
+            PrefersReducedMotion::Reduce,
+            PrefersReducedTransparency::Reduce,
+        );
+        assert!(matches(&reduced, "(prefers-reduced-motion: reduce)"));
+        assert!(matches(&reduced, "(prefers-reduced-motion)"));
+        assert!(matches(&reduced, "(prefers-reduced-transparency: reduce)"));
+        assert!(!matches(
+            &reduced,
+            "(prefers-reduced-transparency: no-preference)"
+        ));
+    }
+}
