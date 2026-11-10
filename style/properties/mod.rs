@@ -2573,6 +2573,26 @@ mod tests {
         assert_eq!(parsed_declarations("frame-sizing: content"), 0);
     }
     #[test]
+    fn text_combine_upright_digits_follows_its_pref() {
+        static_prefs::set_pref!("layout.css.text-combine-upright.enabled", true);
+        assert_eq!(parsed_declarations("text-combine-upright: digits"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: all"), 1);
+
+        static_prefs::set_pref!("layout.css.text-combine-upright-digits.enabled", true);
+        assert_eq!(
+            serialized("text-combine-upright: digits"),
+            "text-combine-upright: digits 2;"
+        );
+        assert_eq!(
+            serialized("text-combine-upright: DIGITS 4"),
+            "text-combine-upright: digits 4;"
+        );
+        assert_eq!(parsed_declarations("text-combine-upright: digits 1"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: digits 5"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: digits 2.0"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: all 2"), 0);
+    }
+    #[test]
     fn word_break_auto_phrase_follows_its_pref() {
         assert_eq!(parsed_declarations("word-break: auto-phrase"), 0);
         assert_eq!(parsed_declarations("word-break: keep-all"), 1);

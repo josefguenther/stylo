@@ -85,6 +85,7 @@
 "layout.css.system-ui.enabled" = true
 "layout.css.text-autospace.enabled" = false
 "layout.css.text-box.enabled" = false
+"layout.css.text-combine-upright-digits.enabled" = false
 "layout.css.text-combine-upright.enabled" = false
 "layout.css.text-decoration-inset-percentage.enabled" = false
 "layout.css.text-decoration-inset.enabled" = false

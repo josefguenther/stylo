@@ -1657,7 +1657,6 @@ pub enum RubyAlign {
     Debug,
     Deserialize,
     Eq,
-    FromPrimitive,
     Hash,
     MallocSizeOf,
     Parse,
@@ -1670,10 +1669,71 @@ pub enum RubyAlign {
     ToShmem,
     ToTyped,
 )]
+#[cfg_attr(feature = "gecko", derive(FromPrimitive))]
 #[repr(u8)]
 pub enum TextCombineUpright {
     None,
     All,
+    /// `digits <integer [2,4]>?`: each run of at most that many ASCII digits is composed.
+    #[cfg(feature = "servo")]
+    #[parse(condition = "text_combine_upright_digits_enabled")]
+    Digits(TextCombineUprightDigits),
+}
+
+#[cfg(feature = "servo")]
+fn text_combine_upright_digits_enabled(_: &ParserContext) -> bool {
+    crate::pref!("layout.css.text-combine-upright-digits.enabled")
+}
+
+/// The `digits` value of `text-combine-upright`, with the largest number of digits it composes:
+/// 2 when no integer is given.
+///
+/// https://drafts.csswg.org/css-writing-modes-4/#valdef-text-combine-upright-digits-integer
+#[cfg(feature = "servo")]
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    Hash,
+    MallocSizeOf,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[typed(skip_derive_fields)]
+#[value_info(other_values = "digits")]
+pub struct TextCombineUprightDigits(pub u8);
+
+#[cfg(feature = "servo")]
+impl Parse for TextCombineUprightDigits {
+    fn parse(context: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
+        input.expect_ident_matching("digits")?;
+        let Ok(digits) = input.try_parse(|input| Integer::parse(context, input)) else {
+            return Ok(Self(2));
+        };
+        match digits.resolve() {
+            Some(value @ 2..=4) => Ok(Self(value as u8)),
+            _ => Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError)),
+        }
+    }
+}
+
+#[cfg(feature = "servo")]
+impl ToCss for TextCombineUprightDigits {
+    fn to_css<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
+    where
+        W: Write,
+    {
+        dest.write_str("digits ")?;
+        self.0.to_css(dest)
+    }
 }
 
 /// https://svgwg.org/svg2-draft/painting.html#TextRenderingProperty
