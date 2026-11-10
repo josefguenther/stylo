@@ -26,6 +26,7 @@
 "layout.css.counters.enabled" = false
 "layout.css.cross-fade.enabled" = false
 "layout.css.custom-media.enabled" = false
+"layout.css.dir-pseudo-class.enabled" = false
 "layout.css.display-animations.enabled" = false
 "layout.css.display-grid-lanes.enabled" = false
 "layout.css.display.flow-root-list-item.enabled" = false

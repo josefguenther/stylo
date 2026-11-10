@@ -16,7 +16,7 @@ use crate::invalidation::element::element_wrapper::ElementSnapshot;
 use crate::properties::longhands::display::computed_value::T as Display;
 use crate::properties::{ComputedValues, PropertyFlags};
 use crate::selector_parser::AttrValue as SelectorAttrValue;
-use crate::selector_parser::{PseudoElementCascadeType, SelectorParser};
+use crate::selector_parser::{Direction, PseudoElementCascadeType, SelectorParser};
 use crate::values::{AtomIdent, AtomString};
 use crate::{Atom, CaseSensitivityExt, LocalName, Namespace, Prefix};
 use cssparser::{Parser as CssParser, ToCss, match_ignore_ascii_case, serialize_identifier};
@@ -26,7 +26,7 @@ use selectors::parser::SelectorParseErrorKind;
 use std::fmt;
 use std::mem;
 use std::ops::{Deref, DerefMut};
-use style_traits::{ParseError, StyleParseErrorKind};
+use style_traits::{CssWriter, ParseError, StyleParseErrorKind};
 
 /// A pseudo-element, both public and private.
 ///
@@ -377,6 +377,8 @@ pub enum NonTSPseudoClass {
     CustomState(CustomState),
     Default,
     Defined,
+    /// The `:dir()` pseudo-class, matched by the element's directionality.
+    Dir(Direction),
     Disabled,
     Enabled,
     Focus,
@@ -440,6 +442,11 @@ impl ToCss for NonTSPseudoClass {
             serialize_identifier(lang, dest)?;
             return dest.write_char(')');
         }
+        if let Dir(ref dir) = *self {
+            dest.write_str(":dir(")?;
+            style_traits::ToCss::to_css(dir, &mut CssWriter::new(dest))?;
+            return dest.write_char(')');
+        }
 
         dest.write_str(match *self {
             Self::Active => ":active",
@@ -483,7 +490,7 @@ impl ToCss for NonTSPseudoClass {
             Self::UserValid => ":user-valid",
             Self::Valid => ":valid",
             Self::Visited => ":visited",
-            Self::Lang(_) => unreachable!(),
+            Self::Lang(_) | Self::Dir(_) => unreachable!(),
         })
     }
 }
@@ -499,6 +506,7 @@ impl NonTSPseudoClass {
             Self::Checked => ElementState::CHECKED,
             Self::Default => ElementState::DEFAULT,
             Self::Defined => ElementState::DEFINED,
+            Self::Dir(ref dir) => dir.element_state(),
             Self::Disabled => ElementState::DISABLED,
             Self::Enabled => ElementState::ENABLED,
             Self::Focus => ElementState::FOCUS,
@@ -684,6 +692,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
             "state" => {
                 let result = AtomIdent::from(parser.expect_ident()?.as_ref());
                 NonTSPseudoClass::CustomState(CustomState(result))
+            },
+            "dir" if crate::pref!("layout.css.dir-pseudo-class.enabled") => {
+                NonTSPseudoClass::Dir(Direction::parse(parser)?)
             },
             _ => return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent)),
         };
@@ -1038,4 +1049,49 @@ pub fn extended_filtering(tag: &str, range: &str) -> bool {
         // step 4
         true
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::stylesheets::UrlExtraData;
+    use selectors::parser::{Component, SelectorList};
+
+    fn parse(input: &str) -> Option<SelectorList<SelectorImpl>> {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        SelectorParser::parse_author_origin_no_namespace(input, &url_data).ok()
+    }
+
+    fn pseudo_class(input: &str) -> NonTSPseudoClass {
+        let list = parse(input).unwrap();
+        let selector = list.slice().first().unwrap();
+        selector
+            .iter()
+            .find_map(|component| match component {
+                Component::NonTSPseudoClass(pseudo_class) => Some(pseudo_class.clone()),
+                _ => None,
+            })
+            .unwrap()
+    }
+
+    #[test]
+    fn dir_follows_its_pref() {
+        assert!(parse(":dir(rtl)").is_none());
+        assert!(parse(":lang(en)").is_some());
+
+        static_prefs::set_pref!("layout.css.dir-pseudo-class.enabled", true);
+        let rtl = pseudo_class("td:DIR(RTL)");
+        assert_eq!(rtl, NonTSPseudoClass::Dir(Direction(atom!("rtl"))));
+        assert_eq!(rtl.state_flag(), ElementState::RTL);
+        assert_eq!(rtl.to_css_string(), ":dir(rtl)");
+        assert_eq!(pseudo_class(":dir(ltr)").state_flag(), ElementState::LTR);
+
+        let other = pseudo_class(":dir(auto)");
+        assert_eq!(other.to_css_string(), ":dir(auto)");
+        assert!(other.state_flag().is_empty());
+        assert!(other.needs_cache_revalidation());
+
+        assert!(parse(":dir()").is_none());
+        assert!(parse(":dir(rtl, ltr)").is_none());
+    }
 }
