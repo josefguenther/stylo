@@ -810,7 +810,6 @@ pub mod columns {
     }
 }
 
-#[cfg(feature = "gecko")]
 pub mod column_rule {
     pub use crate::properties::generated::shorthands::column_rule::*;
 
