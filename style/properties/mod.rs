@@ -2644,4 +2644,18 @@ mod tests {
         }
         assert_eq!(parsed_declarations("text-decoration-skip-ink: some"), 0);
     }
+
+    #[test]
+    fn overflow_anchor_follows_its_pref() {
+        assert_eq!(parsed_declarations("overflow-anchor: none"), 0);
+
+        static_prefs::set_pref!("layout.css.scroll-anchoring.enabled", true);
+        for css in ["auto", "none"] {
+            assert_eq!(
+                serialized(&format!("overflow-anchor: {}", css)),
+                format!("overflow-anchor: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("overflow-anchor: visible"), 0);
+    }
 }
