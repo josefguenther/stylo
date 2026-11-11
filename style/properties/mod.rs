@@ -2744,4 +2744,26 @@ mod tests {
         }
         assert_eq!(serialized("break-before: column"), "break-before: column;");
     }
+
+    #[test]
+    fn orphans_and_widows_follow_their_prefs() {
+        for property in ["orphans", "widows"] {
+            assert_eq!(parsed_declarations(&format!("{}: 3", property)), 0);
+
+            if property == "orphans" {
+                static_prefs::set_pref!("layout.css.orphans.enabled", true);
+            } else {
+                static_prefs::set_pref!("layout.css.widows.enabled", true);
+            }
+            for css in ["1", "2", "1000000000"] {
+                assert_eq!(
+                    serialized(&format!("{}: {}", property, css)),
+                    format!("{}: {};", property, css)
+                );
+            }
+            for css in ["0", "-1", "1.5", "auto"] {
+                assert_eq!(parsed_declarations(&format!("{}: {}", property, css)), 0);
+            }
+        }
+    }
 }

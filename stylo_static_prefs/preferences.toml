@@ -62,6 +62,7 @@
 "layout.css.motion-path-url.enabled" = false
 "layout.css.motion-path.enabled" = false
 "layout.css.nth-child-of.enabled" = false
+"layout.css.orphans.enabled" = false
 "layout.css.outline-offset.snapping" = 1
 "layout.css.overflow-moz-hidden-unscrollable.enabled" = false
 "layout.css.overscroll-behavior.enabled" = false
@@ -111,6 +112,7 @@
 "layout.css.webkit-text-fill-color.enabled" = false
 "layout.css.white-space-collapse.preserve-spaces.enabled" = false
 "layout.css.white-space-trim.enabled" = false
+"layout.css.widows.enabled" = false
 "layout.css.word-break-auto-phrase.enabled" = false
 "layout.css.word-break.break-word.enabled" = false
 "layout.css.word-space-transform.enabled" = false

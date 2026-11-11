@@ -881,9 +881,6 @@ class PropertiesData(object):
         self.shorthands = []
         self.shorthands_by_name = {}
         self.shorthand_aliases = []
-        self.counted_unknown_properties = [
-            CountedUnknownProperty(p) for p in COUNTED_UNKNOWN_PROPERTIES
-        ]
 
         self.style_structs = [
             StyleStruct("Background", inherited=False),
@@ -1017,6 +1014,15 @@ class PropertiesData(object):
         self.view_transition_descriptors = self._load_descriptors(
             "view_transition_descriptors.toml"
         )
+
+    @property
+    def counted_unknown_properties(self):
+        """The counted unknown properties, but those this engine parses."""
+        return [
+            CountedUnknownProperty(p)
+            for p in COUNTED_UNKNOWN_PROPERTIES
+            if p not in self.longhands_by_name
+        ]
 
     def declare_all_shorthand(self):
         # We don't define the 'all' shorthand using the regular helpers:shorthand
