@@ -12,6 +12,7 @@
 "layout.css.background-clip.text.enabled" = false
 "layout.css.basic-shape-shape.enabled" = false
 "layout.css.block-ellipsis.enabled" = false
+"layout.css.break-properties.enabled" = false
 "layout.css.calc-typed-arithmetic.enabled" = true
 "layout.css.color-mix-multi-color.enabled" = true
 "layout.css.columns.enabled" = false

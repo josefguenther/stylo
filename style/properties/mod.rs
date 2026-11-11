@@ -2687,4 +2687,61 @@ mod tests {
         assert_eq!(parsed_declarations("column-rule: 1px solid red"), 3);
         assert_eq!(parsed_declarations("column-rule-width: -1px"), 0);
     }
+
+    #[test]
+    fn break_properties_and_their_legacy_shorthands_follow_their_pref() {
+        assert_eq!(parsed_declarations("break-before: column"), 0);
+        assert_eq!(parsed_declarations("page-break-after: always"), 0);
+
+        static_prefs::set_pref!("layout.css.break-properties.enabled", true);
+        for property in ["break-before", "break-after"] {
+            for css in [
+                "auto",
+                "avoid",
+                "always",
+                "page",
+                "left",
+                "right",
+                "avoid-page",
+                "avoid-column",
+                "recto",
+                "verso",
+                "column",
+            ] {
+                assert_eq!(
+                    serialized(&format!("{}: {}", property, css)),
+                    format!("{}: {};", property, css)
+                );
+            }
+            assert_eq!(parsed_declarations(&format!("{}: region", property)), 0);
+        }
+        for css in ["auto", "avoid", "avoid-page", "avoid-column"] {
+            assert_eq!(
+                serialized(&format!("break-inside: {}", css)),
+                format!("break-inside: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("break-inside: column"), 0);
+
+        // The legacy shorthands set their longhand, `always` as `page`, and take only CSS 2's
+        // values.
+        assert_eq!(
+            serialized("page-break-before: always"),
+            "break-before: page;"
+        );
+        assert_eq!(serialized("page-break-after: left"), "break-after: left;");
+        assert_eq!(
+            serialized("page-break-inside: avoid"),
+            "break-inside: avoid;"
+        );
+        for css in [
+            "page-break-before: page",
+            "page-break-before: column",
+            "page-break-after: avoid-column",
+            "page-break-inside: avoid-page",
+        ] {
+            assert_eq!(parsed_declarations(css), 0, "{}", css);
+        }
+        assert_eq!(serialized("break-before: column"), "break-before: column;");
+    }
 }

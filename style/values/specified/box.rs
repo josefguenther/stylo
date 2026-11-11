@@ -2030,13 +2030,27 @@ pub enum BreakBetween {
     Avoid,
     Left,
     Right,
+    /// `avoid-page`: avoid a page break.
+    #[cfg(feature = "servo")]
+    AvoidPage,
+    /// `avoid-column`: avoid a column break.
+    #[cfg(feature = "servo")]
+    AvoidColumn,
+    /// `recto`: force a page break, then one or two so the next page is a recto page.
+    #[cfg(feature = "servo")]
+    Recto,
+    /// `verso`: force a page break, then one or two so the next page is a verso page.
+    #[cfg(feature = "servo")]
+    Verso,
+    /// `column`: force a column break.
+    #[cfg(feature = "servo")]
+    Column,
 }
 
 impl BreakBetween {
     /// Parse a legacy break-between value for `page-break-{before,after}`.
     ///
     /// See https://drafts.csswg.org/css-break/#page-break-properties.
-    #[cfg_attr(feature = "servo", allow(unused))]
     #[inline]
     pub(crate) fn parse_legacy(_: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
         let break_value = BreakBetween::parse(input)?;
@@ -2045,14 +2059,13 @@ impl BreakBetween {
             BreakBetween::Auto | BreakBetween::Avoid | BreakBetween::Left | BreakBetween::Right => {
                 Ok(break_value)
             },
-            BreakBetween::Page => Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError)),
+            _ => Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError)),
         }
     }
 
     /// Serialize a legacy break-between value for `page-break-*`.
     ///
     /// See https://drafts.csswg.org/css-break/#page-break-properties.
-    #[cfg_attr(feature = "servo", allow(unused))]
     pub(crate) fn to_css_legacy<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
     where
         W: Write,
@@ -2062,7 +2075,7 @@ impl BreakBetween {
                 self.to_css(dest)
             },
             BreakBetween::Page => dest.write_str("always"),
-            BreakBetween::Always => Ok(()),
+            _ => Ok(()),
         }
     }
 }
@@ -2099,7 +2112,6 @@ impl BreakWithin {
     /// Parse a legacy break-between value for `page-break-inside`.
     ///
     /// See https://drafts.csswg.org/css-break/#page-break-properties.
-    #[cfg_attr(feature = "servo", allow(unused))]
     #[inline]
     pub(crate) fn parse_legacy(_: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
         let break_value = BreakWithin::parse(input)?;
@@ -2114,7 +2126,6 @@ impl BreakWithin {
     /// Serialize a legacy break-between value for `page-break-inside`.
     ///
     /// See https://drafts.csswg.org/css-break/#page-break-properties.
-    #[cfg_attr(feature = "servo", allow(unused))]
     pub(crate) fn to_css_legacy<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
     where
         W: Write,
