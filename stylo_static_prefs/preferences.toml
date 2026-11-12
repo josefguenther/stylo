@@ -66,6 +66,7 @@
 "layout.css.outline-offset.snapping" = 1
 "layout.css.overflow-moz-hidden-unscrollable.enabled" = false
 "layout.css.overscroll-behavior.enabled" = false
+"layout.css.page-rule.enabled" = false
 "layout.css.prefers-contrast.enabled" = false
 "layout.css.prefers-reduced-motion.enabled" = false
 "layout.css.prefers-reduced-transparency.enabled" = false

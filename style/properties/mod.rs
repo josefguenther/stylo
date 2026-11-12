@@ -2766,4 +2766,27 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn page_size_follows_its_pref() {
+        let page = |css: &str| {
+            let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+            let block =
+                parse_style_attribute(css, &url_data, None, QuirksMode::NoQuirks, CssRuleType::Page);
+            let mut result = String::new();
+            block.to_css(&mut result).unwrap();
+            (block.len(), result)
+        };
+        assert_eq!(page("size: 5in 3in").0, 0);
+
+        static_prefs::set_pref!("layout.css.page-rule.enabled", true);
+        for css in ["5in 3in", "auto", "a4", "a5 landscape", "letter portrait", "landscape"] {
+            assert_eq!(page(&format!("size: {}", css)).0, 1, "{}", css);
+        }
+        assert_eq!(page("size: 5in 3in").1, "size: 5in 3in;");
+        assert_eq!(page("size: -1in").0, 0);
+        // A page descriptor applies in a page context alone, and margins apply there too.
+        assert_eq!(parsed_declarations("size: 5in 3in"), 0);
+        assert_eq!(page("margin: 0.5in").0, 4);
+    }
 }
