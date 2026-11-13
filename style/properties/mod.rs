@@ -1898,3 +1898,68 @@ impl<'a> Iterator for TransitionPropertyIterator<'a> {
         }
     }
 }
+
+#[cfg(all(test, feature = "servo"))]
+mod tests {
+    use super::parse_style_attribute;
+    use crate::context::QuirksMode;
+    use crate::stylesheets::{CssRuleType, UrlExtraData};
+
+    fn parsed_declarations(css: &str) -> usize {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        )
+        .len()
+    }
+
+    fn serialized(css: &str) -> String {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let block = parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        );
+        let mut result = String::new();
+        block.to_css(&mut result).unwrap();
+        result
+    }
+
+    #[test]
+    fn shape_outside_and_shape_margin_follow_their_pref() {
+        assert_eq!(parsed_declarations("shape-outside: circle(50%)"), 0);
+        assert_eq!(parsed_declarations("shape-margin: 10px"), 0);
+
+        static_prefs::set_pref!("layout.css.shape-outside.enabled", true);
+        for css in [
+            "none",
+            "margin-box",
+            "border-box",
+            "padding-box",
+            "content-box",
+            "circle(50%)",
+            "circle(closest-side at 10px 20%)",
+            "ellipse(40% 30px at right 10px bottom 5px)",
+            "inset(10px round 5px)",
+            "polygon(0px 0px, 100% 0px, 50% 100%)",
+            "circle(50%) border-box",
+        ] {
+            assert_eq!(
+                parsed_declarations(&format!("shape-outside: {}", css)),
+                1,
+                "{}",
+                css
+            );
+        }
+        assert_eq!(serialized("shape-margin: 10%"), "shape-margin: 10%;");
+        assert_eq!(parsed_declarations("shape-margin: -1px"), 0);
+        // `shape-image-threshold` stays Gecko-only.
+        assert_eq!(parsed_declarations("shape-image-threshold: 0.5"), 0);
+    }
+}

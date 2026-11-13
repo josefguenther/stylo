@@ -61,6 +61,7 @@
 "layout.css.scroll-driven-animations.enabled" = false
 "layout.css.scroll-state.enabled" = false
 "layout.css.scrollbar-styling.enabled" = false
+"layout.css.shape-outside.enabled" = false
 "layout.css.starting-style-at-rules.enabled" = false
 "layout.css.stretch-size-keyword.enabled" = true
 "layout.css.style-queries.enabled" = false
