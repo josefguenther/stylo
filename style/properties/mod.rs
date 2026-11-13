@@ -2898,5 +2898,13 @@ mod tests {
         assert_eq!(parsed_declarations("shape-margin: -1px"), 0);
         // `shape-image-threshold` stays out: a shape from an image is not laid out.
         assert_eq!(parsed_declarations("shape-image-threshold: 0.5"), 0);
+        // `path()` and `shape()` too in Servo builds, `shape()` behind its own pref.
+        assert_eq!(parsed_declarations("shape-outside: path('M 0 0 L 10 0 L 0 10 Z')"), 1);
+        assert_eq!(parsed_declarations("shape-outside: path(evenodd, 'M 0 0 L 10 0 L 0 10 Z')"), 1);
+        static_prefs::set_pref!("layout.css.basic-shape-shape.enabled", true);
+        assert_eq!(
+            parsed_declarations("shape-outside: shape(from 0 0, line to 100% 0, line to 0 100%, close)"),
+            1
+        );
     }
 }
