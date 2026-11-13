@@ -1898,3 +1898,75 @@ impl<'a> Iterator for TransitionPropertyIterator<'a> {
         }
     }
 }
+
+#[cfg(all(test, feature = "servo"))]
+mod tests {
+    use super::parse_style_attribute;
+    use crate::context::QuirksMode;
+    use crate::stylesheets::{CssRuleType, UrlExtraData};
+
+    fn parsed_declarations(css: &str) -> usize {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        )
+        .len()
+    }
+
+    fn serialized(css: &str) -> String {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let block = parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        );
+        let mut result = String::new();
+        block.to_css(&mut result).unwrap();
+        result
+    }
+
+    #[test]
+    fn break_properties_follow_their_pref() {
+        assert_eq!(parsed_declarations("break-before: page"), 0);
+        assert_eq!(parsed_declarations("page-break-after: always"), 0);
+
+        static_prefs::set_pref!("layout.css.break-properties.enabled", true);
+        for property in ["break-before", "break-after"] {
+            for css in ["auto", "avoid", "always", "page", "left", "right"] {
+                assert_eq!(
+                    serialized(&format!("{}: {}", property, css)),
+                    format!("{}: {};", property, css)
+                );
+            }
+            assert_eq!(parsed_declarations(&format!("{}: region", property)), 0);
+        }
+        for css in ["auto", "avoid", "avoid-page", "avoid-column"] {
+            assert_eq!(
+                serialized(&format!("break-inside: {}", css)),
+                format!("break-inside: {};", css)
+            );
+        }
+        assert_eq!(parsed_declarations("break-inside: page"), 0);
+
+        // The legacy shorthands set their longhand, `always` as `page`, and take only CSS 2's
+        // values.
+        assert_eq!(
+            serialized("page-break-before: always"),
+            "break-before: page;"
+        );
+        assert_eq!(serialized("page-break-after: left"), "break-after: left;");
+        assert_eq!(
+            serialized("page-break-inside: avoid"),
+            "break-inside: avoid;"
+        );
+        for css in ["page-break-before: page", "page-break-inside: avoid-page"] {
+            assert_eq!(parsed_declarations(css), 0, "{}", css);
+        }
+    }
+}
