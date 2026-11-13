@@ -1961,5 +1961,22 @@ mod tests {
         assert_eq!(parsed_declarations("shape-margin: -1px"), 0);
         // `shape-image-threshold` stays Gecko-only.
         assert_eq!(parsed_declarations("shape-image-threshold: 0.5"), 0);
+
+        // path() and shape() too, shape() behind its own pref.
+        for css in [
+            "path('M 0 0 L 10 0 L 0 10 Z')",
+            "path(evenodd, 'M 0 0 L 10 0 L 0 10 Z')",
+        ] {
+            assert_eq!(
+                parsed_declarations(&format!("shape-outside: {}", css)),
+                1,
+                "{}",
+                css
+            );
+        }
+        let shape = "shape-outside: shape(from 0 0, line to 100% 0, line to 0 100%, close)";
+        assert_eq!(parsed_declarations(shape), 0);
+        static_prefs::set_pref!("layout.css.basic-shape-shape.enabled", true);
+        assert_eq!(parsed_declarations(shape), 1);
     }
 }

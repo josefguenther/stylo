@@ -276,12 +276,20 @@ impl Parse for ShapeOutside {
             return Ok(ShapeOutside::Image(image));
         }
 
+        // CSS Shapes 1 lists path() and shape() among shape-outside's basic shapes. Servo builds
+        // take them; shape() is behind its own pref, as everywhere.
+        #[cfg(feature = "servo")]
+        let allowed = AllowedBasicShapes::SHAPE_OUTSIDE
+            | AllowedBasicShapes::PATH
+            | AllowedBasicShapes::SHAPE;
+        #[cfg(not(feature = "servo"))]
+        let allowed = AllowedBasicShapes::SHAPE_OUTSIDE;
         parse_shape_or_box(
             context,
             input,
             ShapeOutside::Shape,
             ShapeOutside::Box,
-            AllowedBasicShapes::SHAPE_OUTSIDE,
+            allowed,
         )
     }
 }
