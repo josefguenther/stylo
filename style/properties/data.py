@@ -710,6 +710,7 @@ class Longhand(Property):
                 "PrintColorAdjust",
                 "ForcedColorAdjust",
                 "Resize",
+                "RubyOverhang",
                 "RubyPosition",
                 "SVGPaintOrder",
                 "ScrollbarGutter",

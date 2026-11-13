@@ -24,8 +24,6 @@ use std::fmt::{self, Write};
 use style_traits::{CssString, CssWriter, ToCss};
 use thin_vec::ThinVec;
 
-#[cfg(feature = "servo")]
-pub use crate::values::specified::text::TextCombineUprightDigits;
 pub use crate::values::specified::text::{
     HangingPunctuation, HyphenateCharacter, Hyphens, LineBreak, MozControlCharacterVisibility,
     OverflowWrap, RubyAlign, RubyPosition, TextAlignLast, TextAutospace, TextBoxEdge, TextBoxTrim,
@@ -34,6 +32,8 @@ pub use crate::values::specified::text::{
     TextSpacingTrim, TextTransform, TextUnderlinePosition, TextWrapMode, TextWrapStyle,
     UnicodeBidi, WhiteSpaceCollapse, WhiteSpaceTrim, WordBreak, WordSpaceTransform,
 };
+#[cfg(feature = "servo")]
+pub use crate::values::specified::text::{RubyOverhang, TextCombineUprightDigits};
 
 /// A computed value for the `initial-letter` property.
 pub type InitialLetter = GenericInitialLetter<CSSFloat, CSSInteger>;

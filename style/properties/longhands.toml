@@ -2620,6 +2620,16 @@ spec = "https://drafts.csswg.org/css-text-3/#line-break-property"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
 
+[ruby-overhang]
+type = "RubyOverhang"
+initial = "computed::RubyOverhang::Auto"
+struct = "inherited_text"
+engine = "servo"
+servo_pref = "layout.css.ruby.enabled"
+spec = "https://drafts.csswg.org/css-ruby/#ruby-overhang"
+animation_type = "discrete"
+affects = "layout"
+
 [ruby-position]
 type = "RubyPosition"
 initial = "computed::RubyPosition::AlternateOver"

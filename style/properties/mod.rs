@@ -2837,4 +2837,40 @@ mod tests {
             assert_eq!(page(css).0, 0, "{}", css);
         }
     }
+
+    #[test]
+    fn ruby_follows_its_pref() {
+        for css in [
+            "display: ruby",
+            "display: ruby-text",
+            "ruby-overhang: spaces",
+        ] {
+            assert_eq!(parsed_declarations(css), 0, "{}", css);
+        }
+
+        static_prefs::set_pref!("layout.css.ruby.enabled", true);
+        for (css, expected) in [
+            ("display: ruby", "display: ruby;"),
+            ("display: inline ruby", "display: ruby;"),
+            ("display: block ruby", "display: block ruby;"),
+            ("display: ruby-base", "display: ruby-base;"),
+            ("display: ruby-text", "display: ruby-text;"),
+            (
+                "display: ruby-base-container",
+                "display: ruby-base-container;",
+            ),
+            (
+                "display: ruby-text-container",
+                "display: ruby-text-container;",
+            ),
+            ("ruby-overhang: auto", "ruby-overhang: auto;"),
+            ("ruby-overhang: spaces", "ruby-overhang: spaces;"),
+            ("ruby-overhang: none", "ruby-overhang: spaces;"),
+        ] {
+            assert_eq!(serialized(css), expected, "{}", css);
+        }
+        for css in ["display: ruby list-item", "ruby-overhang: start"] {
+            assert_eq!(parsed_declarations(css), 0, "{}", css);
+        }
+    }
 }

@@ -1649,6 +1649,36 @@ pub enum RubyAlign {
     SpaceBetween,
 }
 
+/// https://drafts.csswg.org/css-ruby/#ruby-overhang
+#[allow(missing_docs)]
+#[cfg(feature = "servo")]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum RubyOverhang {
+    Auto,
+    /// `none` is a legacy value alias of `spaces`.
+    #[parse(aliases = "none")]
+    Spaces,
+}
+
 /// https://drafts.csswg.org/css-writing-modes-3/#text-combine-upright
 #[allow(missing_docs)]
 #[derive(

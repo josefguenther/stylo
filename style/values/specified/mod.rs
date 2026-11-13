@@ -114,8 +114,6 @@ pub use self::svg::{SVGLength, SVGOpacity, SVGPaint};
 pub use self::svg::{SVGPaintOrder, SVGStrokeDashArray, SVGWidth, VectorEffect};
 pub use self::svg_path::SVGPathData;
 pub use self::table::{BorderCollapse, EmptyCells, TableLayout};
-#[cfg(feature = "servo")]
-pub use self::text::TextCombineUprightDigits;
 pub use self::text::{
     HangingPunctuation, HyphenateCharacter, HyphenateLimitChars, Hyphens, RubyAlign, RubyPosition,
     TextCombineUpright, TextDecorationStyle, TextRendering, TextSecurity, TextSizeAdjust,
@@ -123,6 +121,8 @@ pub use self::text::{
 };
 pub use self::text::{InitialLetter, LetterSpacing, LineBreak, TextAlign, TextIndent};
 pub use self::text::{OverflowWrap, TextEmphasisPosition, TextEmphasisStyle, WordBreak};
+#[cfg(feature = "servo")]
+pub use self::text::{RubyOverhang, TextCombineUprightDigits};
 pub use self::text::{TextAlignKeyword, TextDecorationLine, TextOverflow, WordSpacing};
 pub use self::text::{TextAlignLast, TextAutospace, TextUnderlinePosition};
 pub use self::text::{TextBoxEdge, TextBoxTrim, TextSpacingTrim};
