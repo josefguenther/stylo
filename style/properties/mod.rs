@@ -1898,3 +1898,63 @@ impl<'a> Iterator for TransitionPropertyIterator<'a> {
         }
     }
 }
+
+#[cfg(all(test, feature = "servo"))]
+mod tests {
+    use super::parse_style_attribute;
+    use crate::context::QuirksMode;
+    use crate::stylesheets::{CssRuleType, UrlExtraData};
+
+    fn parsed_declarations(css: &str) -> usize {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        )
+        .len()
+    }
+
+    fn serialized(css: &str) -> String {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let block = parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        );
+        let mut result = String::new();
+        block.to_css(&mut result).unwrap();
+        result
+    }
+
+    #[test]
+    fn ruby_display_values_follow_the_ruby_pref() {
+        for css in ["display: ruby", "display: ruby-text"] {
+            assert_eq!(parsed_declarations(css), 0, "{}", css);
+        }
+
+        static_prefs::set_pref!("layout.css.ruby.enabled", true);
+        for (css, expected) in [
+            ("display: ruby", "display: ruby;"),
+            ("display: inline ruby", "display: ruby;"),
+            ("display: block ruby", "display: block ruby;"),
+            ("display: ruby-base", "display: ruby-base;"),
+            ("display: ruby-text", "display: ruby-text;"),
+            (
+                "display: ruby-base-container",
+                "display: ruby-base-container;",
+            ),
+            (
+                "display: ruby-text-container",
+                "display: ruby-text-container;",
+            ),
+        ] {
+            assert_eq!(serialized(css), expected, "{}", css);
+        }
+        assert_eq!(parsed_declarations("display: ruby list-item"), 0);
+    }
+}
