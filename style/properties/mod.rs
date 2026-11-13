@@ -1898,3 +1898,73 @@ impl<'a> Iterator for TransitionPropertyIterator<'a> {
         }
     }
 }
+
+#[cfg(all(test, feature = "servo"))]
+mod tests {
+    use super::parse_style_attribute;
+    use crate::context::QuirksMode;
+    use crate::stylesheets::{CssRuleType, UrlExtraData};
+
+    fn parsed_declarations(css: &str) -> usize {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        )
+        .len()
+    }
+
+    fn serialized(css: &str) -> String {
+        let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
+        let block = parse_style_attribute(
+            css,
+            &url_data,
+            None,
+            QuirksMode::NoQuirks,
+            CssRuleType::Style,
+        );
+        let mut result = String::new();
+        block.to_css(&mut result).unwrap();
+        result
+    }
+
+    #[test]
+    fn text_combine_upright_digits_follows_its_pref() {
+        static_prefs::set_pref!("layout.css.text-combine-upright.enabled", true);
+        assert_eq!(parsed_declarations("text-combine-upright: digits"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: all"), 1);
+
+        static_prefs::set_pref!("layout.css.text-combine-upright-digits.enabled", true);
+        assert_eq!(
+            serialized("text-combine-upright: digits"),
+            "text-combine-upright: digits 2;"
+        );
+        assert_eq!(
+            serialized("text-combine-upright: DIGITS 4"),
+            "text-combine-upright: digits 4;"
+        );
+        assert_eq!(parsed_declarations("text-combine-upright: digits 1"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: digits 5"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: digits 2.0"), 0);
+        assert_eq!(parsed_declarations("text-combine-upright: all 2"), 0);
+
+        // A calc() is rounded to an integer and clamped to [2, 4].
+        for (css, expected) in [
+            ("calc(1 + 2)", "digits 3"),
+            ("calc(3 * 1.0)", "digits 3"),
+            ("calc(4.0 / 2)", "digits 2"),
+            ("calc(0 + 1)", "digits 2"),
+            ("calc(10 - 3)", "digits 4"),
+        ] {
+            assert_eq!(
+                serialized(&format!("text-combine-upright: digits {}", css)),
+                format!("text-combine-upright: {};", expected),
+                "{}",
+                css
+            );
+        }
+    }
+}

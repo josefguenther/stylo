@@ -121,6 +121,8 @@ pub use self::svg::{
 pub use self::svg::{SVGLength, SVGOpacity, SVGPaint, SVGPaintKind};
 pub use self::svg::{SVGPaintOrder, SVGStrokeDashArray, SVGWidth, VectorEffect};
 pub use self::table::{BorderCollapse, EmptyCells, TableLayout};
+#[cfg(feature = "servo")]
+pub use self::text::TextCombineUprightDigits;
 pub use self::text::{
     HyphenateCharacter, HyphenateLimitChars, Hyphens, RubyAlign, TextCombineUpright,
     TextDecorationStyle, TextRendering, TextSecurity, TextSizeAdjust, TextWrapMode, TextWrapStyle,

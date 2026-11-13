@@ -24,6 +24,8 @@ use std::fmt::{self, Write};
 use style_traits::{CssString, CssWriter, ToCss};
 use thin_vec::ThinVec;
 
+#[cfg(feature = "servo")]
+pub use crate::values::specified::text::TextCombineUprightDigits;
 pub use crate::values::specified::text::{
     HyphenateCharacter, Hyphens, LineBreak, MozControlCharacterVisibility, OverflowWrap, RubyAlign,
     RubyPosition, TextAlignLast, TextAutospace, TextBoxEdge, TextBoxTrim, TextCombineUpright,
