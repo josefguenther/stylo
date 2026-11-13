@@ -2015,6 +2015,21 @@ pub enum BreakBetween {
     Avoid,
     Left,
     Right,
+    /// `avoid-page`: avoid a page break.
+    #[cfg(feature = "servo")]
+    AvoidPage,
+    /// `avoid-column`: avoid a column break.
+    #[cfg(feature = "servo")]
+    AvoidColumn,
+    /// `recto`: force a page break, then one or two so the next page is a recto page.
+    #[cfg(feature = "servo")]
+    Recto,
+    /// `verso`: force a page break, then one or two so the next page is a verso page.
+    #[cfg(feature = "servo")]
+    Verso,
+    /// `column`: force a column break.
+    #[cfg(feature = "servo")]
+    Column,
 }
 
 impl BreakBetween {
@@ -2029,7 +2044,7 @@ impl BreakBetween {
             BreakBetween::Auto | BreakBetween::Avoid | BreakBetween::Left | BreakBetween::Right => {
                 Ok(break_value)
             },
-            BreakBetween::Page => Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError)),
+            _ => Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError)),
         }
     }
 
@@ -2045,7 +2060,7 @@ impl BreakBetween {
                 self.to_css(dest)
             },
             BreakBetween::Page => dest.write_str("always"),
-            BreakBetween::Always => Ok(()),
+            _ => Ok(()),
         }
     }
 }

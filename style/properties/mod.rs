@@ -1968,5 +1968,23 @@ mod tests {
         for css in ["page-break-before: page", "page-break-inside: avoid-page"] {
             assert_eq!(parsed_declarations(css), 0, "{}", css);
         }
+
+        // CSS Fragmentation 3's values, which the legacy shorthands do not take.
+        for property in ["break-before", "break-after"] {
+            for css in ["avoid-page", "avoid-column", "recto", "verso", "column"] {
+                assert_eq!(
+                    serialized(&format!("{}: {}", property, css)),
+                    format!("{}: {};", property, css)
+                );
+            }
+        }
+        assert_eq!(parsed_declarations("break-inside: column"), 0);
+        for css in [
+            "page-break-before: column",
+            "page-break-after: avoid-column",
+            "page-break-after: recto",
+        ] {
+            assert_eq!(parsed_declarations(css), 0, "{}", css);
+        }
     }
 }
