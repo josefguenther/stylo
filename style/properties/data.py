@@ -153,6 +153,37 @@ VISITED_DEPENDENT_PROPERTIES = set([
     "color",
 ])
 
+# The page context's properties (CSS Paged Media 3, Appendix A, with `writing-mode`, which maps
+# the page box's logical margins and padding to its sides) that the Gecko build does not take in a
+# page rule. The servo build takes them there, so an embedder that paginates finds the page box's
+# border, padding, background, outline and sizes by matching its page rules; the page rule itself
+# is behind `layout.css.page-rule.enabled`.
+SERVO_PAGE_CONTEXT_PROPERTIES = (
+    ["background", "background-position"]
+    + [
+        "background-" + p
+        for p in [
+            "color", "image", "position-x", "position-y", "repeat", "size",
+            "attachment", "clip", "origin",
+        ]
+    ]
+    + ["border", "border-color", "border-style", "border-width"]
+    + ["border-block", "border-inline"]
+    + ["border-%s-%s" % (a, k) for a in LOGICAL_AXES for k in ["color", "style", "width"]]
+    + ["border-" + side for side in PHYSICAL_SIDES + LOGICAL_SIDES]
+    + [
+        "border-%s-%s" % (side, k)
+        for side in PHYSICAL_SIDES + LOGICAL_SIDES
+        for k in ["color", "style", "width"]
+    ]
+    + ["padding"]
+    + ["padding-" + side for side in PHYSICAL_SIDES + LOGICAL_SIDES]
+    + ["margin-" + side for side in LOGICAL_SIDES]
+    + ["outline", "outline-color", "outline-style", "outline-width", "outline-offset"]
+    + ["width", "height", "min-width", "min-height", "max-width", "max-height"]
+    + ["color", "direction", "visibility", "writing-mode"]
+)
+
 # Bitfield values for all rule types which can have property declarations.
 STYLE_RULE = 1 << 0
 PAGE_RULE = 1 << 1
@@ -995,6 +1026,10 @@ class PropertiesData(object):
         )
         for name, args in shorthands_toml.items():
             self.declare_shorthand(name, **args)
+        if self.engine == "servo":
+            for name in SERVO_PAGE_CONTEXT_PROPERTIES:
+                property = self.longhands_by_name.get(name) or self.shorthands_by_name[name]
+                property.rule_types_allowed |= PAGE_RULE
         self.declare_all_shorthand()
 
         self.font_face_descriptors = self._load_descriptors(

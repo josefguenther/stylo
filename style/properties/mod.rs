@@ -1918,7 +1918,7 @@ mod tests {
     }
 
     #[test]
-    fn page_size_follows_its_pref() {
+    fn page_rule_follows_its_pref() {
         let page = |css: &str| {
             let url_data = UrlExtraData::from(url::Url::parse("about:blank").unwrap());
             let block = parse_style_attribute(
@@ -1950,5 +1950,41 @@ mod tests {
         // A page descriptor applies in a page context alone, and margins apply there too.
         assert_eq!(parsed_declarations("size: 5in 3in"), 0);
         assert_eq!(page("margin: 0.5in").0, 4);
+
+        // The rest of the page context's properties (CSS Paged Media 3, Appendix A, with
+        // `writing-mode`) apply there too, but what does not apply to a page box.
+        for (css, longhands) in [
+            ("border-top: 20px solid green", 3),
+            ("border-block-start-width: 1px", 1),
+            ("border-inline-color: red", 2),
+            ("padding: 1px 2px", 4),
+            ("padding-inline-start: 2%", 1),
+            ("margin-block-start: 8%", 1),
+            ("margin-inline-end: auto", 1),
+            ("background-color: yellow", 1),
+            ("background-image: none", 1),
+            ("outline: 10px solid green", 3),
+            ("outline-offset: 40px", 1),
+            ("width: 200px", 1),
+            ("height: 60%", 1),
+            ("max-width: 300px", 1),
+            ("visibility: hidden", 1),
+            ("color: hotpink", 1),
+            ("direction: rtl", 1),
+        ] {
+            assert_eq!(page(css).0, longhands, "{}", css);
+        }
+        assert!(page("background: yellow").0 > 1);
+        assert!(page("border: 10px dotted").0 >= 12);
+        static_prefs::set_pref!("layout.css.writing-mode.enabled", true);
+        assert_eq!(page("writing-mode: vertical-rl").0, 1);
+        for css in [
+            "display: none",
+            "float: left",
+            "position: absolute",
+            "font-size: 20px",
+        ] {
+            assert_eq!(page(css).0, 0, "{}", css);
+        }
     }
 }
